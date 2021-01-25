@@ -59,6 +59,49 @@ DownStopPos = $ba
 LeftStopPos = $0e
 RightStopPos = $a0
 
+;Alien movement variables (The formation data is based on
+;Richard's Alien Formation Maker program). X = first 256 bytes, Y = last 256 bytes
+;(As recorded from the program). Variable names will be named as F01X, F01Y - F16X, F16Y 
+;for short
+
+F01X = FormationData01 
+F01Y = FormationData01 + $100
+F02X = FormationData02
+F02Y = FormationData02 + $100
+F03X = FormationData03
+F03Y = FormationData03 + $100
+F04X = FormationData04
+F04Y = FormationData04 + $100
+F05X = FormationData05 
+F05Y = FormationData05 + $100
+F06X = FormationData06
+F06Y = FormationData06 + $100
+F07X = FormationData07
+F07Y = FormationData07 + $100
+F08X = FormationData08
+F08Y = FormationData08 + $100
+F09X = FormationData09
+F09Y = FormationData09 + $100
+F10X = FormationData10
+F10Y = FormationData10 + $100
+F11X = FormationData11
+F11Y = FormationData11 + $100
+F12X = FormationData12
+F12Y = FormationData12 + $100
+F13X = FormationData13
+F13Y = FormationData13 + $100
+F14X = FormationData14
+F14Y = FormationData14 + $100
+F15X = FormationData15
+F15Y = FormationData15 + $100
+F16X = FormationData16
+F16Y = FormationData16 + $100
+
+
+
+
+
+
 ;Music variables
 
 MusicInit = $1000
