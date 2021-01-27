@@ -37,6 +37,9 @@ NewLevelStart
     lda #0
     sta LevelPointer
     sta PlayerBulletColourPointer
+    sta FireButton
+    
+    
     
     ;Initialise all sprite positions 
     
@@ -141,8 +144,24 @@ ZeroFillGameScreen
     lda #0
     sta SpriteAnimDelay
     sta SpriteAnimPointer 
-  
     
+    ldx #$00
+    
+    ;Clear all sprite animation frame with blank frames 
+    
+    ldx #$00
+.blankspriteframes
+    lda #$ff
+    sta SpriteFrameStart,x
+    inx
+    cpx #SpriteFrameEnd-SpriteFrameStart 
+    bne .blankspriteframes
+    
+  
+    ;Reset shield time (100 secs)
+    
+    lda #100
+    sta ShieldTime
     
     cli
     jmp GameLoop
@@ -163,6 +182,9 @@ GameLoop
       jsr LaserGate
       jsr PlayerProperties
       jsr AlienProperties
+      jsr SpriteToBackground
+      jsr SpriteToSprite
+      jsr TestShield
       jmp GameLoop
 
 
@@ -425,7 +447,7 @@ ShiftRows2
         ldx #$00
 .checkflag
         lda row19,x
-        cmp #104 ;char detection 
+        cmp #LevelExitChar ;char detection 
         beq .setupnextlevel
         inx
         cpx #$28
@@ -554,17 +576,11 @@ PlayerProperties
 
         jsr PlayerBulletProperties ;Also control the player's bullet 
                             
-        ;lda PlayerDead
-        ;cmp #$01
-        ;beq .destroyplayer
-        
         ;Player is alive, so it is allowed to be controlled.
         
         lda PlayerType
         sta $07f8 
-        lda #$03
-        sta $d027
-        
+       
         ;Read joystick port 2 controls, and then move ship accordingly
         
         lda #1    ;read up control
@@ -590,9 +606,22 @@ PlayerProperties
         jsr MovePlayerRight
         
 .notright
-        lda #16   ;Check for fire
-        bit $dc00
-        bne .notfire
+
+        ;Read firebutton, but the button is not allowed 
+        ;to be held down
+        
+        lda $dc00
+        lsr
+        lsr
+        lsr
+        lsr
+        lsr
+        bit FireButton  
+        ror FireButton 
+        bmi .notfire
+        bvc .notfire
+        lda #0
+        sta FireButton
         jmp FireBullet 
 .notfire 
         rts
@@ -673,15 +702,17 @@ FireBullet
           sta ObjPos+3 ;Player Bullet Y to Player Y
           rts 
           
-          ;Player Bullet Control 
+          
+;---------------------------------------------------------          
+
+;Player Bullet Control 
           
 PlayerBulletProperties
           
-          ;lda PlayerBulletDead
-          ;cmp #1
-          ;beq .donotmovebullet
-          
-          
+          lda PlayerBulletDestroyed
+          cmp #1
+          beq .donotmovebullet
+        
           ;Set bullet type 
           jsr FlashPlayerBullet
           lda PlayerBulletFrame
@@ -722,7 +753,36 @@ FlashPlayerBullet
           stx PlayerBulletColourPointer
           rts
     
+          ;Bullet has been destroyed by hitting an enemy 
+          
+.donotmovebullet
 
+          lda ExplodeAnimDelay
+          cmp #1
+          beq .doexplosionbullet
+          inc ExplodeAnimDelay 
+          rts
+.doexplosionbullet
+          lda #0
+          sta ExplodeAnimDelay 
+          ldx ExplodeAnimPointer 
+          lda ExplosionFrame,x 
+          sta $07f9
+          lda ExplosionColour,x 
+          sta $d028 
+          inx
+          cpx #ExplosionFrameEnd-ExplosionFrame 
+          beq .restorebullet 
+          inc ExplodeAnimPointer
+          rts
+.restorebullet
+          lda #0
+          sta ExplodeAnimPointer
+          sta ObjPos+2
+          sta PlayerBulletDestroyed
+          rts
+          
+          
 ;------------------------------------------------------------------------------------------------    
           
 ;Test alien properties (Halve speed)
@@ -1140,9 +1200,300 @@ SelectNextAlien
           cpx #AlienPointersEnd-AlienPointersStart
           bne .resetaliengroup
           rts
-         
-;------------------------------------------------------------------------------------------------          
+ 
+;------------------------------------------------------------------------------------------------
+
+;Sprite to background char collision for the player (if the player hits any 
+;deadly background, one shield should be depleted. After all shields are 
+;gone. The player is dead
+
+SpriteToBackground 
           
+          lda ObjPos+1
+          sec
+          sbc #$32
+          lsr
+          lsr
+          lsr
+          tay
+          lda screenlo,y
+          sta playerlo
+          lda screenhi,y 
+          sta playerhi 
+          lda ObjPos 
+          sec
+          sbc #$08
+          lsr
+          lsr
+          tay
+          ldx #3
+          sty selfmod+1
+.bgcloop  jmp CheckCharType
+selfmod   ldy #$00
+          lda playerlo 
+          clc
+          adc #40
+          sta playerlo 
+          bcc skipmod 
+          inc playerhi
+skipmod   dex
+          bne .bgcloop
+          rts
+          
+          ;Check char type ... 
+          
+CheckCharType
+         
+          ;Check for laser gate chars 
+          lda (playerlo),y
+          
+          cmp #LaserGateChar1
+          beq LaserGateCollisionTest 
+          cmp #LaserGateChar2
+          beq LaserGateCollisionTest 
+          cmp #LaserGateChar3
+          beq LaserGateCollisionTest 
+          cmp #LaserGateChar4
+          beq LaserGateCollisionTest
+          
+
+          ;Check for killer chars (except for gate, as that was checked beforehand)
+         
+          cmp #KillerCharsRangeStartGroup1 
+          bcc .playersafe1
+          cmp #KillerCharsRangeEndGroup2
+          bcs .playersafe1
+.playersafe1
+          cmp #37
+          beq .playersafe
+          cmp #0
+          beq .playersafe
+          cmp #120
+          beq .playersafe
+          cmp #121
+          beq .playersafe
+          cmp #122
+          beq .playersafe
+          cmp #123
+          beq .playersafe
+          cmp #124
+          beq .playersafe
+          cmp #125
+          beq .playersafe
+         
+          jmp PlayerIsHit 
+.playersafe
+          jmp selfmod
+          
+          
+;Check if the player hits the laser gate 
+
+LaserGateCollisionTest 
+
+          lda LaserTriggerOn
+          beq PlayerIsHit
+          rts
+          
+;The player is hit by a killer char or an alien
+;check if the player's shield has timed out.
+;If it has, delete 1 shield and trigger it 
+;to flash. Otherwise destroy the player.
+
+PlayerIsHit
+          lda ShieldTime
+          cmp #0
+          beq .deductshield
+          rts
+.deductshield
+          lda #100
+          sta ShieldTime
+          rts
+          
+;-----------------------------------------------------------------------------------------------
+
+;Sprite to sprite collision - for player and bullet 
+;then test collision with enemy objects
+
+SpriteToSprite
+
+           ;register player sprite to sprite 
+           lda ObjPos
+           sec
+           sbc #$06 
+           sta ColliderPlayer
+           clc
+           adc #$0c
+           sta ColliderPlayer+1
+           lda ObjPos+1
+           sec
+           sbc #$0c
+           sta ColliderPlayer+2
+           clc
+           adc #$18
+           sta ColliderPlayer+3
+           
+           ;Now store for the player bullet collider
+           
+           lda ObjPos+2
+           sec
+           sbc #$06
+           sta ColliderBullet 
+           clc
+           adc #$0c 
+           sta ColliderBullet+1
+           lda ObjPos+3 
+           sec
+           sbc #$0c
+           sta ColliderBullet+2
+           clc
+           adc #$18
+           sta ColliderBullet+3
+           
+           
+           ;Test player to alien 
+           
+           jsr TestPlayerToAlienCollision
+           
+           ;Test bullet to alien 
+           
+           jsr TestBulletToAlien 
+           
+;Test collision (player to alien)
+
+TestPlayerToAlienCollision
+
+          jsr TestA2P1
+          jsr TestA2P2
+          jsr TestA2P3
+          jsr TestA2P4
+          jsr TestA2P5
+          rts
+          
+!macro alientoplayertest alienx, alieny, alienframelo {
+
+          lda alienx 
+          cmp ColliderPlayer
+          bcc .nothit
+          cmp ColliderPlayer+1
+          bcs .nothit 
+          lda alieny 
+          cmp ColliderPlayer+2 
+          bcc .nothit 
+          cmp ColliderPlayer+3
+          bcs .nothit 
+          lda ShieldTime 
+          beq .nothit
+          lda alienframelo
+          cmp #<BlankSprite
+          beq .nothit
+          jmp PlayerIsHit
+.nothit          
+          rts
+}          
+          
+TestA2P1  +alientoplayertest ObjPos+4, ObjPos+5, A1Type+1
+TestA2P2  +alientoplayertest ObjPos+6, ObjPos+7, A2Type+1
+TestA2P3  +alientoplayertest ObjPos+8, ObjPos+9, A3Type+1
+TestA2P4  +alientoplayertest ObjPos+10, ObjPos+11, A4Type+1
+TestA2P5  +alientoplayertest ObjPos+12, ObjPos+13, A5Type+1
+
+          ;Test alien to player bullet collision 
+          
+TestBulletToAlien 
+
+          jsr TestA2B1
+          jsr TestA2B2
+          jsr TestA2B3
+          jsr TestA2B4
+          jsr TestA2B5
+          rts
+
+      !macro alienbullettest alienx, alieny, alienframe {
+        
+        lda alienx
+        cmp ColliderBullet
+        bcc .notshot
+        cmp ColliderBullet+1
+        bcs .notshot 
+        lda alieny 
+        cmp ColliderBullet+2
+        bcc .notshot
+        cmp ColliderBullet+3
+        bcs .notshot 
+        
+        ;Aliens should not be destroyed if the bullet is outside the screen
+        
+        lda ObjPos+2
+        beq .notshot
+        
+         ;Aliens should not be destroyed if shot is exploding
+        
+        lda PlayerBulletDestroyed 
+        cmp #1
+        beq .notshot
+        
+        lda alienframe+1
+        cmp #<BlankSprite 
+        beq .notshot
+        lda #<BlankSprite 
+        sta alienframe+1
+        lda #>BlankSprite 
+        sta alienframe+2
+        
+       
+        
+        ;Destroy the player's bullet (and trigger the explosion routine)
+        
+        lda #0
+        sta ExplodeAnimDelay
+        sta ExplodeAnimPointer
+        lda #1
+        sta PlayerBulletDestroyed
+        
+.notshot        
+        rts
+       
+      }
+      
+TestA2B1  +alienbullettest ObjPos+4, ObjPos+5, A1Type 
+TestA2B2  +alienbullettest ObjPos+6, ObjPos+7, A2Type 
+TestA2B3  +alienbullettest ObjPos+8, ObjPos+9, A3Type 
+TestA2B4  +alienbullettest ObjPos+10, ObjPos+11, A4Type 
+TestA2B5  +alienbullettest ObjPos+12, ObjPos+13, A5Type 
+
+;-----------------------------------------------------------------------------------------------
+
+                  ;Test player's shield. When active during play, the player is left 
+                  ;invulnerable for a short period of time. 
+TestShield 
+                  lda ShieldTime 
+                  beq .shieldout
+                  dec ShieldTime 
+                  ldx ShieldFlashPointer
+                  lda ShieldFlashColour,x
+                  sta $d027 
+                  inx
+                  cpx #ShieldFlashColourEnd-ShieldFlashColour
+                  beq .shieldloop
+                  inc ShieldFlashPointer
+                  rts 
+.shieldloop       ldx #0
+                  stx ShieldFlashPointer
+                  rts
+.shieldout        lda #0
+                  sta ShieldTime
+                  lda #3
+                  sta $d027
+                  rts
+                  
+
+          
+;------------------------------------------------------------------------------------------------          
+       
+;Player control (Fire button) prevent autofire
+
+FireButton !byte 0
+   
 ;Pointers - loads of them
 BGColour1 !byte 0 ;Custom pointer for setting background colour ($d023)
 BGColour2 !byte 0 ;                                             ($d022)
@@ -1163,6 +1514,9 @@ SpriteAnimPointer !byte 0 ;Controls actual pointer for sprite animation
 ExplodeAnimDelay !byte 0
 ExplodeAnimPointer !byte 0
 PlayerBulletColourPointer !byte 0
+PlayerBulletDestroyed !byte 0
+ShieldTime !byte 0
+ShieldFlashPointer !byte 0
 
 ;Player control pointers
 
@@ -1198,6 +1552,7 @@ Alien5Enabled !byte 0
 AlienPointersEnd
 ;Custom animation pointers 
 
+SpriteFrameStart
 PlayerType !byte 0
 AlienType1 !byte 0
 AlienType2 !byte 0
@@ -1207,11 +1562,14 @@ AlienType5 !byte 0
 AlienType6 !byte 0
 AlienType7 !byte 0
 AlienType8 !byte 0
-
+BlankSprite !byte $ff
+SpriteFrameEnd
+!byte 0
 GamePointersEnd
 ;Self mod Sprite object position table (filled with blank)
 ObjPos !fill $11,0
-
+ColliderPlayer !fill 4,0
+ColliderBullet !fill 4,0
 ;Sprite Animation frame pointers
 
 ;Animation frame for player ship
@@ -1219,8 +1577,7 @@ PlayerShipFrame
   !byte $80,$81,$82,$83
 PlayerBulletFrame
   !byte $84,$84,$84,$84
-ExplosionFrame 
-  !byte $85,$86,$87,$88,$89,$8a,$8b
+
 ;Pink rotary robot  
 AlienType1Frame 
   !byte $8c,$8d,$8e,$8f 
@@ -1261,7 +1618,19 @@ AlienType8Frame
   !byte $a8,$a9,$aa,$ab
 AlienType8Colour  
   !byte $06
+  
+ExplosionFrame !byte $85,$86,$87,$88,$89,$8a,$8b,$ff 
+ExplosionFrameEnd !byte $ff
+ExplosionColour
+               !byte $08,$0a,$0f,$07,$0f,$0a,$08,$ff
    
+;Player shield flash colour (will be fast flashing)
+
+ShieldFlashColour
+               !byte $01,$03,$01,$03,$01,$03,$01
+ShieldFlashColourEnd
+               !byte $03
+               
 ;Background colour properties for each level change
 
 D022Colour !byte $03,$0a,$0c,$05,$0e
@@ -1331,5 +1700,15 @@ AlienSelectSequence
               
 AlienSelectSequenceEnd
     
-    
+!align $ff,0
+
+;Screen pointers (lo-hi byte settings)
+
+screenlo      !byte $00,$28,$50,$78,$a0,$c8,$f0,$18,$40,$68,$90,$b8
+              !byte $e0,$08,$30,$58,$80,$a8,$d0,$f8,$20,$48,$70,$98 
+              !byte $c0
+              
+screenhi      !byte $04,$04,$04,$04,$04,$04,$04,$05,$05,$05,$05,$05
+              !byte $05,$06,$06,$06,$06,$06,$06,$06,$07,$07,$07,$07
+              !byte $07
     

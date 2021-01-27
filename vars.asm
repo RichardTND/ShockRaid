@@ -47,10 +47,7 @@ row18 = screen+18*40
 row19 = screen+19*40
 row20 = screen+20*40
 
-;Background object characters for lasers
 
-LaserGateChars = $3800+64*8
-LaserGateCharsBackup = $3808 ;Where old text chars lie
 
 ;Player variables
 
@@ -58,6 +55,27 @@ UpStopPos = $5a
 DownStopPos = $ba
 LeftStopPos = $0e
 RightStopPos = $a0
+
+KillerCharsRangeStartGroup1 = 66 
+KillerCharsRangeEndGroup1 = 119
+KillerCharsRangeStartGroup2 = 125
+KillerCharsRangeEndGroup2 = 173
+
+
+LaserGateChar1 = 63
+LaserGateChar2 = 64
+LaserGateChar3 = 65
+LaserGateChar4 = 66
+
+;Background object characters for lasers
+
+LaserGateChars = $3800+LaserGateChar1*8
+LaserGateCharsBackup = $3808 ;Where old text chars lie
+
+LevelExitChar = 101 ;The char ID for the top of the flag pole
+
+playerlo = $70
+playerhi = $71
 
 ;Alien movement variables (The formation data is based on
 ;Richard's Alien Formation Maker program). X = first 256 bytes, Y = last 256 bytes
