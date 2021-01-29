@@ -138,4 +138,4 @@ stackx3
           ldx #$00      
 stacky3
           ldy #$00      
-          rti
+nmi         rti

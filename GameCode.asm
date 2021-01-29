@@ -10,10 +10,10 @@
 ;Main game code
 
 NewLevelStart
-    ldx #$fb
-    txs
     
     sei
+    ldx #$fb
+    txs
     lda #$35
     sta $01
     lda #$00
@@ -26,6 +26,10 @@ NewLevelStart
     ldy #$ff
     stx $fffe
     sty $ffff
+    ldx #<nmi 
+    ldy #>nmi
+    stx $fffa
+    sty $fffb
     
     lda #$18
     sta $d016
@@ -76,6 +80,8 @@ ZeroFillGameScreen
     inx
     bne ZeroFillGameScreen
     
+    
+    
     ;Draw the panel (The size from charpad is 6 by 40
     
     ldx #$00
@@ -95,6 +101,19 @@ ZeroFillGameScreen
     cpx #240
     bne .colourhud
    
+    ;Zero points
+    
+    ldx #$00
+.zeroscore
+    lda #$30
+    sta Score,x 
+    inx
+    cpx #$06
+    bne .zeroscore
+    
+    lda #$35
+    sta Shield
+    
     ;Setup the game sprites
     
     lda #$ff
@@ -185,6 +204,8 @@ GameLoop
       jsr SpriteToBackground
       jsr SpriteToSprite
       jsr TestShield
+      jsr TestEnemyBullet
+      jsr SmartBackgroundScroll
       jmp GameLoop
 
 
@@ -255,6 +276,22 @@ AnimSprites
       sta AlienType7 
       lda AlienType8Frame,x
       sta AlienType8 
+      lda AlienType9Frame,x
+      sta AlienType9
+      lda AlienType10Frame,x
+      sta AlienType10 
+      lda AlienType11Frame,x
+      sta AlienType11
+      lda AlienType12Frame,x
+      sta AlienType12
+      lda AlienType13Frame,x
+      sta AlienType13
+      lda AlienType14Frame,x
+      sta AlienType14
+      lda AlienType15Frame,x
+      sta AlienType15 
+      lda AlienType16Frame,x
+      sta AlienType16
       inx
       cpx #4
       beq .loopanimation
@@ -798,6 +835,7 @@ AlienProperties
           jsr TestAlien4Properties
           jsr TestAlien5Properties
           jsr TestAllAliensOffset
+          jsr TestAlienBulletToPlayer
           rts
         
 ;Test alien properties in order to check to 
@@ -1192,6 +1230,10 @@ SelectNextAlien
           sta A3MoveY+2
           sta A4MoveY+2
           sta A5MoveY+2
+          lda AlienScoreRangeLo,y
+          sta AwardPoints+1
+          lda AlienScoreRangeHi,y
+          sta AwardPoints+2
           ldx #0
 .resetaliengroup          
           lda #0
@@ -1307,6 +1349,14 @@ PlayerIsHit
 .deductshield
           lda #100
           sta ShieldTime
+          
+          lda Shield
+          cmp #$30
+          beq GameOver
+          dec Shield
+          rts
+GameOver  lda #2
+          sta $d020
           rts
           
 ;-----------------------------------------------------------------------------------------------
@@ -1367,6 +1417,7 @@ TestPlayerToAlienCollision
           jsr TestA2P3
           jsr TestA2P4
           jsr TestA2P5
+         
           rts
           
 !macro alientoplayertest alienx, alieny, alienframelo {
@@ -1382,20 +1433,22 @@ TestPlayerToAlienCollision
           cmp ColliderPlayer+3
           bcs .nothit 
           lda ShieldTime 
-          beq .nothit
-          lda alienframelo
+          cmp #0
+          bne .nothit
+          lda alienframelo+1
           cmp #<BlankSprite
           beq .nothit
-          jmp PlayerIsHit
+          jsr PlayerIsHit
 .nothit          
           rts
 }          
           
-TestA2P1  +alientoplayertest ObjPos+4, ObjPos+5, A1Type+1
-TestA2P2  +alientoplayertest ObjPos+6, ObjPos+7, A2Type+1
-TestA2P3  +alientoplayertest ObjPos+8, ObjPos+9, A3Type+1
-TestA2P4  +alientoplayertest ObjPos+10, ObjPos+11, A4Type+1
-TestA2P5  +alientoplayertest ObjPos+12, ObjPos+13, A5Type+1
+TestA2P1  +alientoplayertest ObjPos+4, ObjPos+5, A1Type
+TestA2P2  +alientoplayertest ObjPos+6, ObjPos+7, A2Type
+TestA2P3  +alientoplayertest ObjPos+8, ObjPos+9, A3Type
+TestA2P4  +alientoplayertest ObjPos+10, ObjPos+11, A4Type
+TestA2P5  +alientoplayertest ObjPos+12, ObjPos+13, A5Type
+
 
           ;Test alien to player bullet collision 
           
@@ -1424,6 +1477,7 @@ TestBulletToAlien
         ;Aliens should not be destroyed if the bullet is outside the screen
         
         lda ObjPos+2
+        cmp #0
         beq .notshot
         
          ;Aliens should not be destroyed if shot is exploding
@@ -1439,7 +1493,7 @@ TestBulletToAlien
         sta alienframe+1
         lda #>BlankSprite 
         sta alienframe+2
-        
+        jsr AwardPoints
        
         
         ;Destroy the player's bullet (and trigger the explosion routine)
@@ -1453,7 +1507,7 @@ TestBulletToAlien
 .notshot        
         rts
        
-      }
+        }
       
 TestA2B1  +alienbullettest ObjPos+4, ObjPos+5, A1Type 
 TestA2B2  +alienbullettest ObjPos+6, ObjPos+7, A2Type 
@@ -1461,6 +1515,25 @@ TestA2B3  +alienbullettest ObjPos+8, ObjPos+9, A3Type
 TestA2B4  +alienbullettest ObjPos+10, ObjPos+11, A4Type 
 TestA2B5  +alienbullettest ObjPos+12, ObjPos+13, A5Type 
 
+                 ;Just like with the alien to player collision, assign alien 
+                 ;bullet to player collision the same way 
+                 
+TestAlienBulletToPlayer
+
+                lda ObjPos+14
+                cmp ColliderPlayer
+                bcc .nobulltoplayer
+                cmp ColliderPlayer+1
+                bcs .nobulltoplayer 
+                lda ObjPos+15
+                cmp ColliderPlayer+2
+                bcc .nobulltoplayer 
+                cmp ColliderPlayer+3 
+                bcs .nobulltoplayer
+                lda #0
+                sta ObjPos+14
+                jsr PlayerIsHit
+.nobulltoplayer rts
 ;-----------------------------------------------------------------------------------------------
 
                   ;Test player's shield. When active during play, the player is left 
@@ -1485,9 +1558,143 @@ TestShield
                   lda #3
                   sta $d027
                   rts
+          
+;------------------------------------------------------------------------------------------------
+;Scoring routine 
+
+AwardPoints       jmp ScoreRange1
                   
 
-          
+ScoreRange4       jsr ScorePoints
+                  jsr ScorePoints
+ScoreRange3       jsr ScorePoints
+ScoreRange2       jsr ScorePoints
+ScoreRange1       jsr ScorePoints
+                  rts
+                  
+ScorePoints       inc Score+3
+                  ldx #3
+.doscore          lda Score,x 
+                  cmp #$3a
+                  bne .scoreok 
+                  lda #$30
+                  sta Score,x 
+                  inc Score-1,x
+.scoreok          dex
+                  bne .doscore
+                  rts
+;------------------------------------------------------------------------------------------------
+
+;Test enemy bullet to fire. After the enemy bullet is offset. Give some time before 
+;picking a random. Bullets only go down
+
+TestEnemyBullet 
+                  lda AlienTypeBullet
+                  sta $07ff
+                  lda AlienTypeBulletColour
+                  sta $d02e
+                  lda ObjPos+14
+                  beq .timedspawnbullet
+                  lda ObjPos+15
+                  clc
+                  adc #6
+                  sta ObjPos+15
+                  cmp #$ca
+                  bcc .notoffsetbullet
+                  lda #$00
+                  sta ObjPos+14
+                  sta AlienBulletWaitTime
+                  rts 
+.notoffsetbullet  sta ObjPos+15          
+                  rts
+                  
+                  ;Wait for bullet wait counter to expire before spawning 
+                  ;a new alien bullet
+                  
+.timedspawnbullet lda AlienBulletWaitTime
+                  cmp #60 ;Interval
+                  beq .launchnewbullet 
+                  inc AlienBulletWaitTime
+                  
+                  
+                  rts
+                
+                  ;Now reset the wait timer and select the enemy to 
+                  ;position the bullet with  
+.launchnewbullet                  
+                  lda #0
+                  sta AlienBulletWaitTime
+                  ldx AlienRandomPointer
+                  lda RandTable,x
+                  sta AlienSelected
+                  lda AlienSelected 
+                  cmp #1
+                  beq .alien1bulletspawncheck
+                  cmp #2
+                  beq .alien2bulletspawncheck
+                  cmp #3
+                  beq .alien3bulletspawncheck
+                  cmp #4
+                  beq .alien4bulletspawncheck
+                  cmp #5
+                  beq .alien5bulletspawncheck 
+                  rts 
+  
+                  ;Macro code for checking alien status before 
+                  ;spawning a deadly bullet to it.
+                  
+  !macro spawnbullet alienframe, alienposx, alienposy {
+    
+                  lda alienframe+1    ;If alien is blank, it is dead
+                  cmp #<BlankSprite   ;therefore it should not spawn
+                  beq .cannotspawnyet
+                  
+                  lda alienposy ;Ensure alien is on screen
+                  cmp #$3a
+                  bcc .cannotspawnyet
+                  
+                  ;Checks have passed, so spawn alien bullet  
+                  ;on to the aliens.
+                  
+                  lda alienposx
+                  sta ObjPos+14
+                  lda alienposy 
+                  clc
+                  adc #8
+                  sta ObjPos+15
+.cannotspawnyet   rts
+   }
+
+.alien1bulletspawncheck
+                  +spawnbullet A1Type, ObjPos+4, ObjPos+5
+.alien2bulletspawncheck                  
+                  +spawnbullet A2Type, ObjPos+6, ObjPos+7 
+.alien3bulletspawncheck
+                  +spawnbullet A3Type, ObjPos+8, ObjPos+9
+.alien4bulletspawncheck
+                  +spawnbullet A4Type, ObjPos+10, ObjPos+11
+.alien5bulletspawncheck
+                  +spawnbullet A5Type, ObjPos+12, ObjPos+13
+                  
+                  
+;-----------------------------------------------------------------------------------------------                  
+                  
+  
+SmartBackgroundScroll  
+                    lda ScrollChar
+                    sta $f6
+                    ldx #0
+.scrollcharloop     lda ScrollChar+1,x
+                    sta ScrollChar,x
+                    inx
+                    cpx #$08
+                    bne .scrollcharloop
+                    lda $f6
+                    sta ScrollChar+7 
+                    rts
+                    
+  
+  
 ;------------------------------------------------------------------------------------------------          
        
 ;Player control (Fire button) prevent autofire
@@ -1500,7 +1707,6 @@ BGColour2 !byte 0 ;                                             ($d022)
        
 GamePointersStart
 ST !byte 0 ;Sync Timer (ST)
-ydelay !byte 0 ;Smooth scroll control byte delay
 ypos !byte 0  ;Smooth scroll control byte
 
 LaserTriggerOn !byte 0
@@ -1518,12 +1724,17 @@ PlayerBulletDestroyed !byte 0
 ShieldTime !byte 0
 ShieldFlashPointer !byte 0
 
+;Alien bullet properties
+AlienBulletWaitTime !byte 0
+AlienSelected !byte 0 
+
 ;Player control pointers
 
 ;Alien control pointers 
 AlienSequencePointer !byte 0
 AlienDelayPointer !byte 0
 AlienValuePointer !byte 0
+AlienRandomPointer !byte 0
 
 AlienPointersStart 
 
@@ -1549,6 +1760,8 @@ Alien3Enabled !byte 0
 Alien4Enabled !byte 0
 Alien5Enabled !byte 0
 
+
+
 AlienPointersEnd
 ;Custom animation pointers 
 
@@ -1562,14 +1775,23 @@ AlienType5 !byte 0
 AlienType6 !byte 0
 AlienType7 !byte 0
 AlienType8 !byte 0
+AlienType9 !byte 0
+AlienType10 !byte 0
+AlienType11 !byte 0
+AlienType12 !byte 0
+AlienType13 !byte 0
+AlienType14 !byte 0
+AlienType15 !byte 0
+AlienType16 !byte 0
 BlankSprite !byte $ff
 SpriteFrameEnd
 !byte 0
 GamePointersEnd
 ;Self mod Sprite object position table (filled with blank)
-ObjPos !fill $11,0
-ColliderPlayer !fill 4,0
-ColliderBullet !fill 4,0
+ObjPos !byte $00,$00,$00,$00,$00,$00,$00,$00
+       !byte $00,$00,$00,$00,$00,$00,$00,$00
+ColliderPlayer !byte $00,$00,$00,$00
+ColliderBullet !byte $00,$00,$00,$00
 ;Sprite Animation frame pointers
 
 ;Animation frame for player ship
@@ -1593,7 +1815,7 @@ AlienType3Frame
   !byte $94,$95,$96,$97
 AlienType3Colour
   !byte $03  
-;Purple disc  
+;Purple spheroid
 AlienType4Frame
   !byte $98,$99,$9a,$9b
 AlienType4Colour
@@ -1608,16 +1830,64 @@ AlienType6Frame
   !byte $a0,$a1,$a2,$a3 
 AlienType6Colour
   !byte $07  
-;Orange Space Gnu
+;Green slime alien
 AlienType7Frame 
   !byte $a4,$a5,$a6,$a7
 AlienType7Colour
-  !byte $08  
-;Washing Machine of Doom
+  !byte $05
+;Blue charged square
 AlienType8Frame 
   !byte $a8,$a9,$aa,$ab
 AlienType8Colour  
-  !byte $06
+  !byte $0e
+;Orange spinning alien 
+AlienType9Frame 
+  !byte $ac,$ad,$ae,$af
+AlienType9Colour
+  !byte $08
+;Grey space ship 
+AlienType10Frame 
+  !byte $b0,$b1,$b2,$b3 
+AlienType10Colour  
+  !byte $0c
+;Light blue helion
+AlienType11Frame 
+  !byte $b4,$b5,$b6,$b7 
+AlienType11Colour
+  !byte $0e
+;Light green Cyber X 
+AlienType12Frame
+  !byte $b8,$b9,$ba,$bb 
+AlienType12Colour
+  !byte $0d
+;Yellow disk with internal spinner 
+AlienType13Frame 
+  !byte $bc,$bd,$be,$bf 
+AlienType13Colour
+  !byte $07 
+;Pink hoverbot 
+AlienType14Frame 
+  !byte $c0,$c1,$c2,$c3
+AlienType14Colour  
+  !byte $0a
+;Silver diamond 
+AlienType15Frame
+  !byte $c4,$c5,$c6,$c7 
+AlienType15Colour
+  !byte $0f
+;Green triangle
+AlienType16Frame
+  !byte $c8,$c9,$ca,$cb 
+AlienType16Colour 
+  !byte $05
+
+;Alien bullet (Just a single frame)
+AlienTypeBullet
+  !byte $cc 
+AlienTypeBulletColour
+  !byte $07
+  
+  
   
 ExplosionFrame !byte $85,$86,$87,$88,$89,$8a,$8b,$ff 
 ExplosionFrameEnd !byte $ff
@@ -1642,65 +1912,86 @@ PlayerBulletColourTable !byte $09,$02,$08,$0a,$07,$01,$0d,$05,$0e,$04,$06
 PlayerBulletColourTableEnd
   
 ;Sequence tables for alien type (Using LO/HI byte values)
-
 AlienTypeLo !byte <AlienType1, <AlienType2, <AlienType3, <AlienType4
             !byte <AlienType5, <AlienType6, <AlienType7, <AlienType8
-            !byte <AlienType1, <AlienType2, <AlienType3, <AlienType4
-            !byte <AlienType5, <AlienType6, <AlienType7, <AlienType8
+            !byte <AlienType9, <AlienType10, <AlienType11, <AlienType12
+            !byte <AlienType13, <AlienType14, <AlienType15, <AlienType16
+            !byte <AlienType16
             
 AlienTypeHi !byte >AlienType1, >AlienType2, >AlienType3, >AlienType4
             !byte >AlienType5, >AlienType6, >AlienType7, >AlienType8
-            !byte >AlienType1, >AlienType2, >AlienType3, >AlienType4
-            !byte >AlienType5, >AlienType6, >AlienType7, >AlienType8
-            
+            !byte >AlienType9, >AlienType10, >AlienType11, >AlienType12
+            !byte >AlienType13, >AlienType14, >AlienType15, >AlienType16
+            !byte >AlienType16
 ;Sequence tables for alien colour (using LO/HI byte values)
-
 AlienColourLo !byte <Alien1TypeColour, <AlienType2Colour, <AlienType3Colour, <AlienType4Colour
               !byte <AlienType5Colour, <AlienType6Colour, <AlienType7Colour, <AlienType8Colour
-              !byte <Alien1TypeColour, <AlienType2Colour, <AlienType3Colour, <AlienType4Colour
-              !byte <AlienType5Colour, <AlienType6Colour, <AlienType7Colour, <AlienType8Colour
+              !byte <AlienType9Colour, <AlienType10Colour, <AlienType11Colour, <AlienType12Colour
+              !byte <AlienType13Colour, <AlienType14Colour, <AlienType15Colour, <AlienType16Colour
+              !byte <AlienType16Colour
               
 AlienColourHi !byte >Alien1TypeColour, >AlienType2Colour, >AlienType3Colour, >AlienType4Colour
               !byte >AlienType5Colour, >AlienType6Colour, >AlienType7Colour, >AlienType8Colour
-              !byte >Alien1TypeColour, >AlienType2Colour, >AlienType3Colour, >AlienType4Colour
-              !byte >AlienType5Colour, >AlienType6Colour, >AlienType7Colour, >AlienType8Colour
+              !byte >AlienType9Colour, >AlienType10Colour, >AlienType11Colour, >AlienType12Colour
+              !byte >AlienType13Colour, >AlienType14Colour, >AlienType15Colour, >AlienType16Colour
+              !byte >AlienType16Colour
+AlienScoreRangeLo 
+              !byte <ScoreRange1, <ScoreRange1, <ScoreRange1, <ScoreRange1 
+              !byte <ScoreRange2, <ScoreRange2, <ScoreRange2, <ScoreRange2
+              !byte <ScoreRange3, <ScoreRange3, <ScoreRange3, <ScoreRange3
+              !byte <ScoreRange4, <ScoreRange4, <ScoreRange4, <ScoreRange4
+              !byte <ScoreRange4
+              
+AlienScoreRangeHi
+             
+              !byte >ScoreRange1, >ScoreRange1, >ScoreRange1, >ScoreRange1 
+              !byte >ScoreRange2, >ScoreRange2, >ScoreRange2, >ScoreRange2
+              !byte >ScoreRange3, >ScoreRange3, >ScoreRange3, >ScoreRange3
+              !byte >ScoreRange4, >ScoreRange4, >ScoreRange4, >ScoreRange4
+              !byte >ScoreRange4
+              
                             
 ;Sequence tables for alien movement data X (using LO/HI byte values)
-
 AlienXPosLo   !byte <F01X, <F02X, <F03X, <F04X
               !byte <F05X, <F06X, <F07X, <F08X
               !byte <F09X, <F10X, <F11X, <F12X
-              !byte <F13X, <F14X, <F15X, <F16X
+              !byte <F13X, <F14X, <F15X, <F16X, <F16X
 
 AlienXPosHi   !byte >F01X, >F02X, >F03X, >F04X
               !byte >F05X, >F06X, >F07X, >F08X
               !byte >F09X, >F10X, >F11X, >F12X
-              !byte >F13X, >F14X, >F15X, >F16X
+              !byte >F13X, >F14X, >F15X, >F16X, >F16X
               
 ;Sequence tables for alien movement data Y (using LO/HI byte values)              
-
 AlienYPosLo   !byte <F01Y, <F02Y, <F03Y, <F04Y
               !byte <F05Y, <F06Y, <F07Y, <F08Y
               !byte <F09Y, <F10Y, <F11Y, <F12Y
-              !byte <F13Y, <F14Y, <F15Y, <F16Y
+              !byte <F13Y, <F14Y, <F15Y, <F16Y, <F16Y
 
 AlienYPosHi   !byte >F01Y, >F02Y, >F03Y, >F04Y
               !byte >F05Y, >F06Y, >F07Y, >F08Y
               !byte >F09Y, >F10Y, >F11Y, >F12Y
-              !byte >F13Y, >F14Y, >F15Y, >F16Y
+              !byte >F13Y, >F14Y, >F15Y, >F16Y, >F16Y
+              
+;256 byte random table to select which alien to fire bullet (if present)
+
+RandTable     !byte 5,1,3,2,4,1,5,1,2,3,1,4,1,5,3,1,2,5,3,1,3,4,2,1,5,1,3,1,4,2,4,1,2,4
+              !byte 1,5,3,2,4,3,5,1,2,4,5,2,4,3,1,5,2,4,3,1,4,3,5,1,2,5,4,3,4,1,2,5,4,1
+              !byte 2,1,4,3,4,1,2,4,3,1,3,4,1,2,4,1,4,3,5,1,2,4,5,1,5,3,2,4,5,1,3,2,2,3
+              !byte 4,3,1,3,2,5,1,3,2,5,1,4,3,5,1,2,4,3,5,1,3,5,2,1,5,3,4,1,2,4,5,3,1,5
+              !byte 4,3,1,3,2,5,1,3,2,5,1,4,3,5,1,2,4,3,5,1,3,5,2,1,5,3,4,1,2,4,5,3,1,5
+              
  
 ;Sequence selection test data - 12 selections per level                
-
 AlienSelectSequence              
-              !byte $01,$02,$01,$03,$02,$01,$03,$04,$02,$03,$01,$03 ;Sequence for level 1
-              !byte $02,$06,$03,$04,$05,$08,$03,$07,$05,$03,$05,$07 ;Sequence for level 2
+              !byte $01,$02,$00,$03,$02,$01,$03,$04,$00,$03,$01,$03 ;Sequence for level 1
+              !byte $02,$06,$03,$00,$05,$08,$03,$07,$05,$03,$05,$07 ;Sequence for level 2
               !byte $09,$0a,$04,$07,$02,$03,$01,$0b,$0c,$05,$0a,$07 ;Sequence for level 3
               !byte $0d,$0b,$0c,$09,$0a,$0e,$0a,$0b,$0e,$09,$0f,$0d ;Sequence for level 4
               !byte $0f,$0a,$0c,$0e,$0b,$0d,$09,$0a,$0d,$0b,$0c,$0f ;(Just incase amount is too short)
               
 AlienSelectSequenceEnd
     
-!align $ff,0
 
 ;Screen pointers (lo-hi byte settings)
 

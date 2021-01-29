@@ -77,6 +77,8 @@ LevelExitChar = 101 ;The char ID for the top of the flag pole
 playerlo = $70
 playerhi = $71
 
+ScrollChar = $3800+114*8
+
 ;Alien movement variables (The formation data is based on
 ;Richard's Alien Formation Maker program). X = first 256 bytes, Y = last 256 bytes
 ;(As recorded from the program). Variable names will be named as F01X, F01Y - F16X, F16Y 
@@ -115,7 +117,8 @@ F15Y = FormationData15 + $100
 F16X = FormationData16
 F16Y = FormationData16 + $100
 
-
+Score = $0778
+Shield = $07B0-40
 
 
 
