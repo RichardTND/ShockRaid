@@ -42,7 +42,7 @@ NewLevelStart
     sta LevelPointer
     sta PlayerBulletColourPointer
     sta FireButton
-    
+    sta $e1 ;Init slow anim zeropage
     
     
     ;Initialise all sprite positions 
@@ -67,10 +67,13 @@ NewLevelStart
     
     ldx #$00
 ZeroFillGameScreen
-    lda #$00
+    lda startscreen,x
     sta screen,x
+    lda startscreen+$100,x
     sta screen+$100,x
+    lda startscreen+$200,x
     sta screen+$200,x
+    lda startscreen+$2e8,x
     sta screen+$2e8,x
     lda #$09 ;Fill multicolour WHITE
     sta colour,x
@@ -218,7 +221,38 @@ SyncTimer
       sta ST
       cmp ST
       beq *-3
+      jsr SlowAnimPulse
 .skip rts
+      
+
+SlowAnimPulse
+      lda $e1 
+      cmp #3
+      beq .okscroll
+      inc $e1
+      rts
+.okscroll
+      lda #0
+      sta $e1 
+      ldx #$00
+.scrollpulse1
+      lda pulsecharleft1,x
+      asl 
+      rol pulsecharleft2,x
+      rol pulsecharleft1,x 
+      inx
+      cpx #8
+      bne .scrollpulse1
+      ldx #$00
+.scrollpulse2
+      lda pulsecharright1,x
+      lsr
+      ror pulsecharright2,x
+      ror pulsecharright1,x
+      inx
+      cpx #8
+      bne .scrollpulse2
+      rts
       
 
 ;------------------------------------------------------------------------------------------------
@@ -763,7 +797,7 @@ BColSM    ;Player bullet self-mod
           
           lda ObjPos+3
           sec
-          sbc #$09 ;Bullet speed
+          sbc #$0b ;Bullet speed
           cmp #$32 ;Destroy bullet position 
           bcs .storenewbulletposition
           lda #$00
@@ -794,14 +828,14 @@ FlashPlayerBullet
           
 .donotmovebullet
 
-          lda ExplodeAnimDelay
-          cmp #1
-          beq .doexplosionbullet
-          inc ExplodeAnimDelay 
-          rts
+         ; lda ExplodeAnimDelay
+         ; cmp #1
+          ;beq .doexplosionbullet
+         ; inc ExplodeAnimDelay 
+         ; rts
 .doexplosionbullet
-          lda #0
-          sta ExplodeAnimDelay 
+        ;  lda #0
+      ;    sta ExplodeAnimDelay 
           ldx ExplodeAnimPointer 
           lda ExplosionFrame,x 
           sta $07f9
@@ -1355,9 +1389,206 @@ PlayerIsHit
           beq GameOver
           dec Shield
           rts
-GameOver  lda #2
-          sta $d020
+          
+;----------------------------------------------------------------------------------------------
+
+;The player is dead, so clear all of the enemies and do a spectactular explosion           
+          
+GameOver  ldx #$00
+.clearallenemiesforgameover
+          lda BlankSprite
+          sta $07f9,x
+          lda #$07
+          sta $d027
+          inx
+          cpx #$07
+          bne .clearallenemiesforgameover
+          
+          ;Now place all sprites for explosion on to the player ship
+          
+          ldx #$00
+.maskexp  lda ObjPos+1
+          sta ObjPos+3,x
+          lda ObjPos 
+          sta ObjPos+2,x
+          inx
+          inx
+          cpx #$0e 
+          bne .maskexp 
+          
+          ;New Sync Loop for the explosion routine 
+          lda #0
+          sta ExplodeAnimDelay
+          sta ExplodeAnimPointer
+          
+MassExplosionLoop          
+          jsr SyncTimer
+          jsr ExpandSpritePosition
+          jsr ExplodeAllSprites 
+          jsr MoveExplosion 
+          jmp MassExplosionLoop
+          
+          ;Explode all sprites animation 
+          
+ExplodeAllSprites
+          lda ExplodeAnimDelay
+          cmp #$03
+          beq .playerexplodenow
+          inc ExplodeAnimDelay 
           rts
+.playerexplodenow
+          lda #0
+          sta ExplodeAnimDelay 
+          ldx ExplodeAnimPointer
+          lda ExplosionFrame,x
+          sta $07f8
+          sta $07f9
+          sta $07fa
+          sta $07fb
+          sta $07fc
+          sta $07fd
+          sta $07fe
+          sta $07ff
+          lda #7
+          sta $d027
+          sta $d028
+          sta $d029
+          sta $d02a
+          sta $d02b
+          sta $d02c
+          sta $d02d
+          sta $d02e
+          
+          inx
+          cpx #ExplosionFrameEnd-ExplosionFrame
+          beq .finishedExploder
+          inc ExplodeAnimPointer 
+          rts
+.finishedExploder
+
+          ;Display the GAME OVER text sprites 
+          
+          ldx #$00
+SetGOPosition
+          lda GameOverPosition,x
+          sta ObjPos,x
+          inx
+          cpx #$10
+          bne SetGOPosition
+          
+          ldx #$00
+.putgameover
+          lda GameOverSprites,x
+          sta $07f8,x
+          lda #$04
+          sta $d027,x
+          inx
+          cpx #$08
+          bne .putgameover
+          
+          lda #0
+          sta FireButton
+GameOverLoop        
+          jsr SyncTimer
+          jsr ExpandSpritePosition
+          lda $dc00 
+          lsr
+          lsr
+          lsr
+          lsr
+          lsr
+          bit FireButton 
+          ror FireButton 
+          bmi GameOverLoop
+          bvc GameOverLoop
+          lda #0
+          sta FireButton 
+          jmp NewLevelStart
+          
+          
+
+;Move the explosion sprites 
+
+MoveExplosion
+          
+          ;UP
+
+          lda ObjPos+1
+          sec
+          sbc #1
+          sta ObjPos+1
+          
+          ;UP + RIGHT
+          
+          lda ObjPos+2
+          clc
+          adc #1
+          sta ObjPos+2
+          lda ObjPos+3
+          sec
+          sbc #1
+          sta ObjPos+3
+          
+          ;RIGHT
+          
+          lda ObjPos+4
+          clc
+          adc #1
+          sta ObjPos+4
+          
+          ;DOWN + RIGHT 
+          
+          lda ObjPos+6
+          clc
+          adc #1
+          sta ObjPos+6
+          lda ObjPos+7
+          clc
+          adc #1
+.locOK0  sta ObjPos+7 
+          
+          ;DOWN 
+          
+          lda ObjPos+9
+          clc
+          adc #1
+.locOK1   sta ObjPos+9           
+          
+          ;DOWN + LEFT 
+          
+          lda ObjPos+10
+          sec
+          sbc #1
+          sta ObjPos+10
+          lda ObjPos+11
+          clc
+          adc #1
+        
+.locOK2   sta ObjPos+11     
+         
+          
+          ;LEFT
+          
+          lda ObjPos+12
+          sec
+          sbc #1
+          sta ObjPos+12
+          
+          ;UP LEFT 
+          
+          lda ObjPos+14
+          sec
+          sbc #1
+          sta ObjPos+14
+          lda ObjPos+15
+          sec
+          sbc #1
+          sta ObjPos+15
+          rts
+         
+          
+          
+          
           
 ;-----------------------------------------------------------------------------------------------
 
@@ -1887,7 +2118,20 @@ AlienTypeBullet
 AlienTypeBulletColour
   !byte $07
   
+LetterG !byte $cd
+LetterA !byte $ce
+LetterM !byte $cf
+LetterE !byte $d0 
+LetterO !byte $d1
+LetterV !byte $d2 
+LetterR !byte $d4
   
+GameOverSprites
+        !byte $cd,$ce,$cf,$d0,$d1,$d2,$d3,$d4
+  
+GameOverPosition
+        !byte $40,$60,$50,$60,$60,$60,$70,$60 
+        !byte $40,$80,$50,$80,$60,$80,$70,$80 
   
 ExplosionFrame !byte $85,$86,$87,$88,$89,$8a,$8b,$ff 
 ExplosionFrameEnd !byte $ff
@@ -2002,4 +2246,10 @@ screenlo      !byte $00,$28,$50,$78,$a0,$c8,$f0,$18,$40,$68,$90,$b8
 screenhi      !byte $04,$04,$04,$04,$04,$04,$04,$05,$05,$05,$05,$05
               !byte $05,$06,$06,$06,$06,$06,$06,$06,$07,$07,$07,$07
               !byte $07
+              
+!align $100,0
+ 
+;Import game start screen
+startscreen
+  !bin "bin\startscreen.bin"              
     

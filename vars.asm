@@ -120,6 +120,12 @@ F16Y = FormationData16 + $100
 Score = $0778
 Shield = $07B0-40
 
+pulsecharleft1 = $0800+99*8
+pulsecharleft2 = $0800+100*8 
+pulsecharright1 = $0800+101*8
+pulsecharright2 = $0800+102*8
+
+
 
 
 

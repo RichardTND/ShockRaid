@@ -22,6 +22,8 @@ irq1
           sta $d023
           lda BGColour2
           sta $d022
+          lda #$ff
+          sta $d015
         
 ;      lda #1
 ;      sta $d020
@@ -118,6 +120,8 @@ irq3      sta stacka3+1
           sta $d022
           lda #$0b 
           sta $d023
+          lda #$00
+          sta $d015
           
                         ;     lda #3
                         ;     sta $d020
