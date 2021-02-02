@@ -17,6 +17,13 @@
       *=$0800
       ;Import text character set to screen memory
       !bin "bin\textcharset.bin"
+       ;Insert the HUD graphics data
+      *=$0c00
+hud   !bin "bin\hud.bin"
+      !align $100,0
+hudattribs
+      !bin "bin\hudattribs.bin"
+      
       
       *=$1000
       ;Import music data
@@ -39,9 +46,11 @@ mapend
       *=*+10
       
       ;Main game code
-      *=$7000
+      *=$6200
       !source "onetime.asm"
+      !source "titlescreen.asm"
       !source "gamecode.asm"
+      
       ;There should be enough room here (hopefully for alien formation data)
       ;but the code data should be aligned to the nearest $x00 position 
       !align $ff,0
@@ -83,11 +92,20 @@ FormationData16
       *=$b000
 TILEMEMORY
       !bin "bin\gametiles.bin"
-
-      ;Insert the HUD graphics data
-      *=$e000
-hud   !bin "bin\hud.bin"
-      !align $100,0
-hudattribs
-      !bin "bin\hudattribs.bin"
       
+      ;Import logo bitmap video RAM data
+      *=$c400
+vidram      
+      !bin "bin\logovidram.prg",,2 
+      *=$c800
+      ;Import logo colour RAM data 
+colram
+      !bin "bin\logocolram.prg",,2
+      *=$e000
+      ;Import logo bitmap data 
+      !bin "bin\logobitmap.prg",,2
+      
+      
+      
+
+     

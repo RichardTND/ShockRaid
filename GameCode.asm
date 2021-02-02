@@ -8,7 +8,7 @@
 ;#############################
 
 ;Main game code
-
+Game 
 NewLevelStart
     
     sei
@@ -92,7 +92,7 @@ ZeroFillGameScreen
     lda hud,x
     sta screen+$2f8+40,x
     inx
-    cpx #240 
+    cpx #240-40 
     bne .drawhud
     
     ldx #$00
@@ -101,7 +101,7 @@ ZeroFillGameScreen
     lda hudattribs,y 
     sta colour+$2f8+40,x
     inx
-    cpx #240
+    cpx #240-40
     bne .colourhud
    
     ;Zero points
@@ -607,15 +607,12 @@ ScrollLasers
         
         ldx #$00
 .scrolllaserchars
-        lda LaserGateChars+8,x
+        lda LaserGateChars,x
         asl 
         rol LaserGateChars+8,x
-        asl
-        rol LaserGateChars+8,x
-        lda LaserGateChars,x
-        asl
         rol LaserGateChars,x
         asl
+        rol LaserGateChars+8,x
         rol LaserGateChars,x
         inx
         cpx #$08
@@ -623,15 +620,12 @@ ScrollLasers
         
         ldx #$00
 .scrollmorelaserchars
-        lda LaserGateChars+24,x
-        asl
-        rol LaserGateChars+24,x
-        asl
-        rol LaserGateChars+24,x
         lda LaserGateChars+16,x
         asl
+        rol LaserGateChars+24,x
         rol LaserGateChars+16,x
-        asl 
+        asl
+        rol LaserGateChars+24,x
         rol LaserGateChars+16,x
         inx
         cpx #$08
@@ -1503,7 +1497,7 @@ GameOverLoop
           bvc GameOverLoop
           lda #0
           sta FireButton 
-          jmp NewLevelStart
+          jmp Title
           
           
 
