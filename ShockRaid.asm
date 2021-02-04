@@ -105,7 +105,9 @@ colram
       ;Import logo bitmap data 
       !bin "bin\logobitmap.prg",,2
       
-      
+      *=$f000
+      ;Import game sound effects
+      !bin "bin\shockraidsfx.prg",,2
       
 
      

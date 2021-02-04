@@ -30,6 +30,13 @@ NewLevelStart
     ldy #>nmi
     stx $fffa
     sty $fffb
+    ldx #$00
+.sidout
+    lda #0
+    sta $d400,x
+    inx
+    cpx #$18
+    bne .sidout
     
     lda #$18
     sta $d016
@@ -114,7 +121,7 @@ ZeroFillGameScreen
     cpx #$06
     bne .zeroscore
     
-    lda #$35
+    lda #$39 ;Nine shields
     sta Shield
     
     ;Setup the game sprites
@@ -142,18 +149,24 @@ ZeroFillGameScreen
     lda #$7f
     sta $dc0d
     sta $dd0d
-    lda #$32
+    lda #$00
     sta $d012
     lda #$1b
     sta $d011
     lda #$01
     sta $d01a
     sta $d019
-    lda #0
+    lda SoundOption 
+    beq .MusicOptionSet
+    lda #LevelUpSFX
+    jsr SFXInit
+.MusicOptionSet    
+    lda #GameMusic
     jsr MusicInit
     
-    ;Zero all game pointers. So that alien movement, etc is reset 
     
+    ;Zero all game pointers. So that alien movement, etc is reset 
+.Continue    
     ldx #$00
 .initialisepointers
     lda #0
@@ -209,6 +222,40 @@ GameLoop
       jsr TestShield
       jsr TestEnemyBullet
       jsr SmartBackgroundScroll
+      
+      ;Check game pause/quit function ... CONTROL = PAUSE, <- = QUIT BACK TO FRONT END (While paused)
+      
+      lda #4
+      bit $dc01
+      bne NotPaused
+      
+      ;Press fire to unpause game
+      lda #0
+      sta FireButton
+.pauseloop      
+      lda $dc00
+      lsr
+      lsr
+      lsr
+      lsr
+      lsr
+      bit FireButton
+      ror FireButton 
+      bmi .pauseloop2 
+      bvc .pauseloop2
+      lda #0
+      sta FireButton 
+      jmp .resume 
+.pauseloop2      
+      lda #8
+      bit $dc01
+      bne .pauseloop 
+      jmp Title
+      
+.resume      
+      
+      
+NotPaused      
       jmp GameLoop
 
 
@@ -227,7 +274,7 @@ SyncTimer
 
 SlowAnimPulse
       lda $e1 
-      cmp #3
+      cmp #1
       beq .okscroll
       inc $e1
       rts
@@ -546,6 +593,11 @@ SetupLevelScheme
         inx
         cpx #5 
         beq GameComplete
+        lda SoundOption 
+        beq .skiplevelupsfx
+        lda #LevelUpSFX
+        jsr SFXInit
+.skiplevelupsfx        
         rts 
 
 ;The player has completed the game
@@ -759,12 +811,18 @@ FireBullet
           
           ;Position bullet where player is 
 .doplayerfirebullet
+
           lda ObjPos
           sta ObjPos+2 ;Player Bullet X to Player X
           lda ObjPos+1
           sec
           sbc #$08
           sta ObjPos+3 ;Player Bullet Y to Player Y
+          lda SoundOption 
+          beq .skipplayershootsfx
+          lda #PlayerShootSFX
+          jsr SFXInit
+.skipplayershootsfx          
           rts 
           
           
@@ -1377,25 +1435,31 @@ PlayerIsHit
 .deductshield
           lda #100
           sta ShieldTime
-          
+          dec Shield
           lda Shield
           cmp #$30
           beq GameOver
-          dec Shield
+          lda SoundOption 
+          beq .skipgameoversfx
+          lda #ShieldHitSFX
+          jsr SFXInit
+.skipgameoversfx          
           rts
           
 ;----------------------------------------------------------------------------------------------
 
 ;The player is dead, so clear all of the enemies and do a spectactular explosion           
           
-GameOver  ldx #$00
+GameOver    
+
+          ldx #$00
 .clearallenemiesforgameover
           lda BlankSprite
-          sta $07f9,x
+          sta $07f8,x
           lda #$07
-          sta $d027
+          sta $d027,x
           inx
-          cpx #$07
+          cpx #$08
           bne .clearallenemiesforgameover
           
           ;Now place all sprites for explosion on to the player ship
@@ -1414,12 +1478,16 @@ GameOver  ldx #$00
           lda #0
           sta ExplodeAnimDelay
           sta ExplodeAnimPointer
+          lda SoundOption 
+          beq MassExplosionLoop
+          lda #PlayerDeathSFX
+          jsr SFXInit
           
 MassExplosionLoop          
           jsr SyncTimer
           jsr ExpandSpritePosition
           jsr ExplodeAllSprites 
-          jsr MoveExplosion 
+          jsr MoveExploder
           jmp MassExplosionLoop
           
           ;Explode all sprites animation 
@@ -1434,34 +1502,68 @@ ExplodeAllSprites
           lda #0
           sta ExplodeAnimDelay 
           ldx ExplodeAnimPointer
-          lda ExplosionFrame,x
+          lda PlayerExplosionLeft,x
           sta $07f8
+          lda PlayerExplosionRight,x
           sta $07f9
-          sta $07fa
-          sta $07fb
-          sta $07fc
-          sta $07fd
-          sta $07fe
-          sta $07ff
-          lda #7
-          sta $d027
-          sta $d028
-          sta $d029
-          sta $d02a
-          sta $d02b
-          sta $d02c
-          sta $d02d
-          sta $d02e
           
           inx
-          cpx #ExplosionFrameEnd-ExplosionFrame
+          cpx #2
           beq .finishedExploder
           inc ExplodeAnimPointer 
           rts
 .finishedExploder
 
+          ldx #0
+          stx ExplodeAnimPointer
+          rts 
+          
+          ;Move out the explosion effect
+          
+MoveExploder          
+          lda ObjPos
+          sec
+          sbc #2
+          cmp #$02
+          bcs .onset1
+          lda #0
+          sta ObjPos+1
+.onset1   sta ObjPos
+          
+          lda ObjPos+2 
+          clc
+          adc #2
+          cmp #$ba
+          bcc .onset2 
+          lda #0
+          sta ObjPos+3
+.onset2          
+          sta ObjPos+2
+          
+          ;Check if explosion sprites are offset . If so 
+          ;make gameover automatically 
+          
+          lda ObjPos+1
+          beq .obj2out
+          rts
+.obj2out  lda ObjPos+3
+          beq .isgameover
+          rts
+          
+.isgameover          
           ;Display the GAME OVER text sprites 
           
+          
+          lda #$00
+          sta $d015
+          ldx #0
+zeropos   lda #0
+          sta $d000,x
+          sta ObjPos,x 
+        
+          inx
+          cpx #$10
+          bne zeropos
           ldx #$00
 SetGOPosition
           lda GameOverPosition,x
@@ -1474,14 +1576,26 @@ SetGOPosition
 .putgameover
           lda GameOverSprites,x
           sta $07f8,x
-          lda #$04
+          lda #$05
           sta $d027,x
           inx
           cpx #$08
           bne .putgameover
-          
+          lda SoundOption 
+          beq .skipgameoversound
+          lda #GameOverSFX 
+          jsr SFXInit
+.skipgameoversound          
           lda #0
           sta FireButton
+          lda #$ff
+          sta $d015 
+          lda #GameOverJingle
+          jsr MusicInit
+          lda #$0b
+          sta BGColour1
+          lda #$0c
+          sta BGColour2
 GameOverLoop        
           jsr SyncTimer
           jsr ExpandSpritePosition
@@ -1498,91 +1612,6 @@ GameOverLoop
           lda #0
           sta FireButton 
           jmp Title
-          
-          
-
-;Move the explosion sprites 
-
-MoveExplosion
-          
-          ;UP
-
-          lda ObjPos+1
-          sec
-          sbc #1
-          sta ObjPos+1
-          
-          ;UP + RIGHT
-          
-          lda ObjPos+2
-          clc
-          adc #1
-          sta ObjPos+2
-          lda ObjPos+3
-          sec
-          sbc #1
-          sta ObjPos+3
-          
-          ;RIGHT
-          
-          lda ObjPos+4
-          clc
-          adc #1
-          sta ObjPos+4
-          
-          ;DOWN + RIGHT 
-          
-          lda ObjPos+6
-          clc
-          adc #1
-          sta ObjPos+6
-          lda ObjPos+7
-          clc
-          adc #1
-.locOK0  sta ObjPos+7 
-          
-          ;DOWN 
-          
-          lda ObjPos+9
-          clc
-          adc #1
-.locOK1   sta ObjPos+9           
-          
-          ;DOWN + LEFT 
-          
-          lda ObjPos+10
-          sec
-          sbc #1
-          sta ObjPos+10
-          lda ObjPos+11
-          clc
-          adc #1
-        
-.locOK2   sta ObjPos+11     
-         
-          
-          ;LEFT
-          
-          lda ObjPos+12
-          sec
-          sbc #1
-          sta ObjPos+12
-          
-          ;UP LEFT 
-          
-          lda ObjPos+14
-          sec
-          sbc #1
-          sta ObjPos+14
-          lda ObjPos+15
-          sec
-          sbc #1
-          sta ObjPos+15
-          rts
-         
-          
-          
-          
           
 ;-----------------------------------------------------------------------------------------------
 
@@ -1718,8 +1747,15 @@ TestBulletToAlien
         sta alienframe+1
         lda #>BlankSprite 
         sta alienframe+2
+        
+        lda SoundOption 
+        beq .justaddpoints
+        lda #AlienDeathSFX 
+        
+        jsr SFXInit
+.justaddpoints        
         jsr AwardPoints
-       
+        
         
         ;Destroy the player's bullet (and trigger the explosion routine)
         
@@ -1822,7 +1858,7 @@ TestEnemyBullet
                   beq .timedspawnbullet
                   lda ObjPos+15
                   clc
-                  adc #6
+                  adc #4
                   sta ObjPos+15
                   cmp #$ca
                   bcc .notoffsetbullet
@@ -1854,17 +1890,22 @@ TestEnemyBullet
                   sta AlienSelected
                   lda AlienSelected 
                   cmp #1
-                  beq .alien1bulletspawncheck
+                  beq .alien1bulletspawncheck1
                   cmp #2
-                  beq .alien2bulletspawncheck
+                  beq .alien2bulletspawncheck1
                   cmp #3
-                  beq .alien3bulletspawncheck
+                  beq .alien3bulletspawncheck1
                   cmp #4
-                  beq .alien4bulletspawncheck
+                  beq .alien4bulletspawncheck1
                   cmp #5
-                  beq .alien5bulletspawncheck 
+                  beq .alien5bulletspawncheck1 
                   rts 
-  
+.alien1bulletspawncheck1 jmp .alien1bulletspawncheck
+.alien2bulletspawncheck1 jmp .alien2bulletspawncheck
+.alien3bulletspawncheck1 jmp .alien3bulletspawncheck
+.alien4bulletspawncheck1 jmp .alien4bulletspawncheck 
+.alien5bulletspawncheck1 jmp .alien5bulletspawncheck
+
                   ;Macro code for checking alien status before 
                   ;spawning a deadly bullet to it.
                   
@@ -1887,6 +1928,10 @@ TestEnemyBullet
                   clc
                   adc #8
                   sta ObjPos+15
+                  lda SoundOption 
+                  beq .cannotspawnyet
+                  lda #AlienShootSFX 
+                  jsr SFXInit
 .cannotspawnyet   rts
    }
 
@@ -1917,11 +1962,33 @@ SmartBackgroundScroll
                     lda $f6
                     sta ScrollChar+7 
                     rts
-                    
-  
   
 ;------------------------------------------------------------------------------------------------          
+
+;Pal / NTSC player
+
+PalNTSCPlayer
+                    lda system
+                    cmp #1
+                    beq .pal
+                    inc NTSCTimer
+                    lda NTSCTimer
+                    cmp #6
+                    beq .playerloop
+.pal                 jsr MusicPlay
+                    rts
+.playerloop         lda #0
+                    sta NTSCTimer
+                    rts
+                    
        
+
+;Pal NTSC system 
+system !byte 0
+
+;NTSC Timer for music playing 
+NTSCTimer !byte 0
+
 ;Player control (Fire button) prevent autofire
 
 FireButton !byte 0
@@ -2119,6 +2186,9 @@ LetterE !byte $d0
 LetterO !byte $d1
 LetterV !byte $d2 
 LetterR !byte $d4
+
+PlayerExplosionLeft !byte $d8,$d9
+PlayerExplosionRight !byte $da,$db
   
 GameOverSprites
         !byte $cd,$ce,$cf,$d0,$d1,$d2,$d3,$d4

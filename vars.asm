@@ -131,5 +131,27 @@ pulsecharright2 = $0800+102*8
 
 ;Music variables
 
+TitleMusic = 0
+GameMusic = 1
+GameOverJingle = 2
+EndMusic = 3
+
 MusicInit = $1000
 MusicPlay = $1003
+
+;SFX Variables 
+
+
+;Game Start / Level Up 
+
+GameOverSFX = 0
+PlayerShootSFX = 1
+ShieldHitSFX = 2
+PlayerDeathSFX = 3
+AlienDeathSFX = 4
+AlienShootSFX = 5 
+LevelUpSFX = 6
+
+
+SFXInit = $f000
+SFXPlay = $f003

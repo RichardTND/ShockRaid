@@ -127,8 +127,14 @@ irq3      sta stacka3+1
                         ;     sta $d020
           lda #1        
           sta ST     
-          jsr MusicPlay
-
+          
+          lda SoundOption 
+          beq .irqmusic
+          jsr SFXPlay
+          jmp .irqloop
+.irqmusic          
+          jsr PalNTSCPlayer
+.irqloop
           ldx #<irq1    
           ldy #>irq1    
           lda #$20      
@@ -143,3 +149,4 @@ stackx3
 stacky3
           ldy #$00      
 nmi         rti
+

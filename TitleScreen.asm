@@ -12,6 +12,8 @@
 Title          sei
                lda #$35
                sta $01
+               lda $fb
+               txs
                ldx #$48
                ldy #$ff
                stx $fffe
@@ -27,11 +29,24 @@ Title          sei
                sta $dd0d
                lda #$00
                sta $d011
+               lda #0
                sta PageNo
+               sta PageTimer
+               sta PageTimer+1
                lda MusicSprite
                sta $07f8
                lda SFXSprite
                sta $07f9
+               ldx #$00
+.makestars               
+               lda StarSprite 
+               sta $07fa,x
+               lda #14
+               sta $d029,x
+               inx
+               cpx #6
+               bne .makestars
+        
                lda #$ff
                sta $d015 
                sta $d01c
@@ -47,7 +62,7 @@ Title          sei
                sta ObjPos+1
                sta ObjPos+3
                ldx #0
-.clrrest       lda #$00
+.clrrest       lda StarPosTable,x
                sta ObjPos+4,x
                inx
                cpx #$0c
@@ -74,7 +89,7 @@ Title          sei
                sta $06e8,x
                inx
                bne .paintlogo
-               jsr DisplayCredits
+               jsr DisplayHiScores
                ldx #<tirq1
                ldy #>tirq1
                stx $fffe
@@ -93,8 +108,8 @@ Title          sei
                lda #$01
                sta $d019
                sta $d01a
-               lda #$00
-               jsr MusicInit 
+               lda #TitleMusic
+               jsr MusicInit
                cli
                
                jmp TitleLoop ;(placed after IRQS)
@@ -179,7 +194,7 @@ tirq3          sta tstacka3+1
              
                lda #1
                sta ST
-               jsr MusicPlay
+               jsr PalNTSCPlayer
                
                ldx #<tirq1
                ldy #>tirq1
@@ -191,13 +206,14 @@ tstacky3       ldy #$00
                rti
                
                
-TitleLoop
+TitleLoop       jsr SyncTimer
                 jsr ExpandSpritePosition
-                jsr SyncTimer
+                jsr StarField
                 jsr XScroller
                 jsr PageFlipper
                 jsr FlashRoutine
                 jsr CheckSoundOption
+                
 .titleleft      lda #4
                 bit $dc00 
                 bne .titleright
@@ -224,7 +240,7 @@ FireButtonWait
 
 XScroller       lda XPos 
                 sec
-                sbc #1
+                sbc #2
                 and #7
                 sta XPos 
                 bcs .exittextscroll
@@ -390,8 +406,38 @@ InGameMusicMode lda #$0b
                 sta $d027
                 rts
                 
+StarField       ldx #$00
+.scrollaway     lda ObjPos+4,x
+                clc
+                adc StarSpeed,x
+                cmp #$b0
+                bcc .placestar 
+                lda #0 
+.placestar                
+                sta ObjPos+4,x
+                inx
+                inx
+                cpx #$0c
+                bne .scrollaway
+                rts
+                
 MusicSprite !byte $d6
 SFXSprite !byte $d7
+StarSprite !byte $dc
+
+StarPosTable    !byte $00,$90
+                !byte $00,$a0
+                !byte $00,$b0
+                !byte $00,$c0
+                !byte $00,$d0
+                
+StarSpeed       !byte $04,$00
+                !byte $02,$00
+                !byte $03,$00
+                !byte $02,$00
+                !byte $04,$00
+                !byte $03,$00
+
                 
                 
 SoundOption !byte 0                
@@ -427,32 +473,54 @@ TitleScreenText
                 !text "         - press fire to play -         "
                 
 HallOfFameText  !text "             the hall of fame           "
-                !text "           1. richard b 000000          "
-                !text "           2. hugues    000000          "
-                !text "           3. martin    000000          "
-                !text "           4. reset     000000          "
-                !text "           5. mmxxi     000000          "
-                !text "         - press fire to play -         "
+                !text "           1. "
+Name1           !text "richard b "
+HiScore1        !text "000000          "
+                !text "           2. "
+Name2           !text "hugues    "
+HiScore2        !text "000000          "
+                !text "           3. "
+Name3           !text "kevin     "
+HiScore3        !text "000000          "
+                !text "           4. "
+Name4           !text "reset     "
+HiScore4        !text "000000          "
+                !text "           5. "
+Name5           !text "tnd       "
+HiScore5        !text "000000          "
+                !text "         - press fire to play -         "    
+                
+HiScoreMessage
+                !text "         congratulations pilot          "
+                !text "your score has awarded a position in the"
+                !text "             hall of fame.              "
+                !text "         please enter your name         "
+Name            !text "         "                
                 
 ScrollText      
+                !text "  ... the new dimension proudly presents ... "
                 !byte 99,100,99,100 
                 !text " shock raid "
                 !byte 101,102,101,102
-                !text " ...   programming, game graphics and music/sfx by richard bayliss ...   logo and "
-                !text "bitmap graphics by hugues (ax!s) poisseroux ...   copyright (c) 2021 the new dimension "
-                !text "...   developed specially for reset issue 14's mix-i-disk ...   use left/right to select in game sound "
-                !text "options ...   dateline: earth: 2192 ...   "
-                !text "operation shock raid has commenced ...   an alien planet is moving fast and is "
-                !text "currently on course for a head-on collision with planet earth ...   the source that is "
-                !text "controlling it is a crystal of light ...   your mission is to enter four different zones "
-                !text "of the planet's underground in search for the crystal and destroy it ...   however you will not be alone ...   "
-                !text "aliens will attempt to stop you ...   try to avoid crashing into the aliens, boundaries or laser gates, otherwise "
-                !text "a shield will be taken away from you ...   as soon as all of your shields run out, your ship will be destroyed "
-                !text "with you inside it ...   can you get through all 4 zones, find and destroy crystal and teleport back to "
-                !text "give earth the good news, or will you be too late? ...   good luck pilot, you will need it ...   "
-                !text "this game was programmed and developed during winter 2021 ...   we do hope you have fun playing this game ...   "
-                !text "- press fire to play - ...                              "
-                
+                !text " ...   programming, charset graphics, sound effects and music by richard bayliss ...   "
+                !text "bitmap graphics by hugues (ax!s) poisseroux ...   (c) 2021 the new dimension ...   "
+                !text "published by reset magazine issue 14 ...   plug a joystick into port 2 and press left/right "
+                !text "to select in game option ...   during play, press control to pause the game, and "
+                !byte 31
+                !text " (while paused) to abort game and return to this front end, otherwise press fire button to resume play ...   game instructions: this is a fast-paced vertical scrolling shoot 'em up (not s.e.u.c.k) "
+                !text "for 1 player only ...   it is the year 2197 ...   an alien planet, zarjon has spiraled out of control and is "
+                !text "heading towards planet earth ...   we have sent in a few pilots and scientists to find out what has caused "
+                !text "this planet to fly so quickly towards our planet ...   it turns out that a crystal stored in the bottom of "
+                !text "mines appear to be the source ...   our people tried to remove the crystal in order to stop the planet "
+                !text "but they got destroyed by the alien forces ...   this is where you come in ...   your mission is to "
+                !text "enter the alien planet zarj, fly through the 4 underground lairs and do battle against the aliens ...   "
+                !text "you must then locate the crystal, and destroy it in order to save earth ...   your ship is charged with "
+                !text "9 shields ...   these will make an impact if you collide into any aliens, their lasers, the laser gates or "
+                !text "other obstacles ...   once all shields are out, our hope will be lost and earth will be destroyed ...   "
+                !text "can you find the energy crystal and destroy it or will life on earth be no more? ...   the fate of planet earth is "
+                !text "in your hands ...    good luck pilot ...   special thank you goes to everybody who has been involved with this "
+                !text "fun game project ...   i love shoot 'em ups, and i really enjoyed making this game production ...   i hope you "
+                !text "like the final result ...   richard sends his greetings to everybody who still develops, draws graphics or "
+                !text "make music for the commodore 64 scene today ...   most important of all a huge greeting goes out to you ...   "
+                !text "press fire to play ...                                                                                        "
                 !byte 0
-                
-                

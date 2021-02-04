@@ -9,7 +9,7 @@
 
 ;Some one time code which will initialise the game settings
 ;for example backup the laser beam character set, etc.
-
+      
     ;Backup the laser character set
       ldx #$00
 backuplaser
@@ -18,5 +18,6 @@ backuplaser
       inx
       cpx #32
       bne backuplaser
-      
+      lda $02a6
+      sta system
    
