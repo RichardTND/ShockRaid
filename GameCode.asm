@@ -151,6 +151,7 @@ ZeroFillGameScreen
     sta $dd0d
     lda #$00
     sta $d012
+    sta $d01b
     lda #$1b
     sta $d011
     lda #$01
@@ -247,7 +248,7 @@ GameLoop
       sta FireButton 
       jmp .resume 
 .pauseloop2      
-      lda #8
+      lda #2
       bit $dc01
       bne .pauseloop 
       jmp Title
@@ -579,6 +580,15 @@ ShiftRows2
         clc
         adc #$31
         sta $0796
+        
+        ;Add an extra life to the player 
+        
+        lda Shield
+        cmp #$39
+        beq .nobonusshield 
+        inc Shield
+.nobonusshield    
+        jsr Score1000Bonus
         jmp SetupLevelScheme
         
         
@@ -1451,7 +1461,6 @@ PlayerIsHit
 ;The player is dead, so clear all of the enemies and do a spectactular explosion           
           
 GameOver    
-
           ldx #$00
 .clearallenemiesforgameover
           lda BlankSprite
@@ -1506,7 +1515,6 @@ ExplodeAllSprites
           sta $07f8
           lda PlayerExplosionRight,x
           sta $07f9
-          
           inx
           cpx #2
           beq .finishedExploder
@@ -1611,7 +1619,7 @@ GameOverLoop
           bvc GameOverLoop
           lda #0
           sta FireButton 
-          jmp Title
+          jmp CheckForHiScore
           
 ;-----------------------------------------------------------------------------------------------
 
@@ -1825,7 +1833,11 @@ TestShield
 
 AwardPoints       jmp ScoreRange1
                   
-
+Score1000Bonus    jsr ScorePoints
+                  jsr ScorePoints
+                  jsr ScorePoints
+                  jsr ScorePoints
+                  jsr ScorePoints
 ScoreRange4       jsr ScorePoints
                   jsr ScorePoints
 ScoreRange3       jsr ScorePoints

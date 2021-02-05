@@ -50,6 +50,7 @@ Title          sei
                lda #$ff
                sta $d015 
                sta $d01c
+               sta $d01b
                lda #$01
                sta $d025
                lda #$09
@@ -159,7 +160,7 @@ tirq2          sta tstacka2+1
                sta $d011
                lda #$18
                sta $d016
-               lda #$18
+               lda #$38
                sta $d018 
               
                ldx #<tirq3 
@@ -247,6 +248,8 @@ XScroller       lda XPos
                 ldx #$00
 .shift          lda $07c1,x
                 sta $07c0,x
+                lda scrollcharcolour,x
+                sta colour+(24*40),x
                 inx
                 cpx #$28
                 bne .shift 
@@ -268,7 +271,7 @@ MessRead        lda ScrollText
 DisplayHiScores
                 jsr ClearNecessaryRows
                 ldx #$00
-.puthis         lda pulserow1,x 
+.puthis         lda pulserow2,x 
                 sta screen+10*40,x
                 lda #1 
                 sta colour+10*40,x 
@@ -286,7 +289,7 @@ DisplayHiScores
                 sta screen+18*40,x 
                 lda HallOfFameText+240,x
                 sta screen+20*40,x
-                lda pulserow2,x
+                lda pulserow1,x
                 sta screen+22*40,x
                 lda #1
                 sta colour+22*40,x
@@ -336,7 +339,7 @@ ClearNecessaryRows
                 sta screen+10*40+$100,x
                 sta screen+$200,x
                 sta screen+$2e8-40,x
-                lda #13
+                lda #12
                 sta colour+10*40,x
                 sta colour+10*40+$100,x
                 sta colour+$200,x
@@ -410,7 +413,7 @@ StarField       ldx #$00
 .scrollaway     lda ObjPos+4,x
                 clc
                 adc StarSpeed,x
-                cmp #$b0
+                cmp #$c0
                 bcc .placestar 
                 lda #0 
 .placestar                
@@ -462,9 +465,18 @@ pulserow2       !byte 101,102,101,102,101,102,101,102,101,102
                 !byte 101,102,101,102,101,102,101,102,101,102
                
                !ct scr
+               
+scrollcharcolour !byte $09,$0b,$0c,$0f,$07
+                 !byte $01,$01,$01,$01,$01
+                 !byte $01,$01,$01,$01,$01
+                 !byte $01,$01,$01,$01,$01
+                 !byte $01,$01,$01,$01,$01
+                 !byte $01,$01,$01,$01,$01
+                 !byte $01,$01,$01,$01,$07
+                 !byte $0f,$0c,$0b,$09,$09
 TitleScreenText
                 
-                !text "   (c) 2021 the new dimension + reset   "
+                !text "       (c) 2021 the new dimension       "
                 !text " programming          richard bayliss   "
                 !text " graphics             richard bayliss   "
                 !text "                      hugues poisseroux "
@@ -474,6 +486,7 @@ TitleScreenText
                 
 HallOfFameText  !text "             the hall of fame           "
                 !text "           1. "
+HiStart                
 Name1           !text "richard b "
 HiScore1        !text "000000          "
                 !text "           2. "
@@ -488,14 +501,9 @@ HiScore4        !text "000000          "
                 !text "           5. "
 Name5           !text "tnd       "
 HiScore5        !text "000000          "
+HiEnd
                 !text "         - press fire to play -         "    
-                
-HiScoreMessage
-                !text "         congratulations pilot          "
-                !text "your score has awarded a position in the"
-                !text "             hall of fame.              "
-                !text "         please enter your name         "
-Name            !text "         "                
+  
                 
 ScrollText      
                 !text "  ... the new dimension proudly presents ... "
@@ -506,7 +514,7 @@ ScrollText
                 !text "bitmap graphics by hugues (ax!s) poisseroux ...   (c) 2021 the new dimension ...   "
                 !text "published by reset magazine issue 14 ...   plug a joystick into port 2 and press left/right "
                 !text "to select in game option ...   during play, press control to pause the game, and "
-                !byte 31
+                !byte 30
                 !text " (while paused) to abort game and return to this front end, otherwise press fire button to resume play ...   game instructions: this is a fast-paced vertical scrolling shoot 'em up (not s.e.u.c.k) "
                 !text "for 1 player only ...   it is the year 2197 ...   an alien planet, zarjon has spiraled out of control and is "
                 !text "heading towards planet earth ...   we have sent in a few pilots and scientists to find out what has caused "
@@ -515,8 +523,10 @@ ScrollText
                 !text "but they got destroyed by the alien forces ...   this is where you come in ...   your mission is to "
                 !text "enter the alien planet zarj, fly through the 4 underground lairs and do battle against the aliens ...   "
                 !text "you must then locate the crystal, and destroy it in order to save earth ...   your ship is charged with "
-                !text "9 shields ...   these will make an impact if you collide into any aliens, their lasers, the laser gates or "
+                !text "9 shields ...   these will be lost if you collide into any aliens, their lasers, the laser gates or "
                 !text "other obstacles ...   once all shields are out, our hope will be lost and earth will be destroyed ...   "
+                !text "you will be rewarded a bonus shield (if shield count is under 9) for every level completed "
+                !text "1000 points will also be awarded as a bonus for you ...   "
                 !text "can you find the energy crystal and destroy it or will life on earth be no more? ...   the fate of planet earth is "
                 !text "in your hands ...    good luck pilot ...   special thank you goes to everybody who has been involved with this "
                 !text "fun game project ...   i love shoot 'em ups, and i really enjoyed making this game production ...   i hope you "

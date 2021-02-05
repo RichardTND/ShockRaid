@@ -50,7 +50,7 @@ mapend
       !source "onetime.asm"
       !source "titlescreen.asm"
       !source "gamecode.asm"
-      
+      !source "hiscore.asm"
       ;There should be enough room here (hopefully for alien formation data)
       ;but the code data should be aligned to the nearest $x00 position 
       !align $ff,0
@@ -93,14 +93,20 @@ FormationData16
 TILEMEMORY
       !bin "bin\gametiles.bin"
       
+      ;Import end music data 
+      *=$b800
+      !bin "bin\music2.prg",,2
+      
+      
       ;Import logo bitmap video RAM data
-      *=$c400
-vidram      
-      !bin "bin\logovidram.prg",,2 
       *=$c800
       ;Import logo colour RAM data 
 colram
       !bin "bin\logocolram.prg",,2
+      *=$cc00
+vidram      
+      !bin "bin\logovidram.prg",,2 
+      
       *=$e000
       ;Import logo bitmap data 
       !bin "bin\logobitmap.prg",,2

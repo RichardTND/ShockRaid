@@ -139,6 +139,9 @@ EndMusic = 3
 MusicInit = $1000
 MusicPlay = $1003
 
+MusicInit2 = $b800
+MusicPlay2 = $b803
+
 ;SFX Variables 
 
 
