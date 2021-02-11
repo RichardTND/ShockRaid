@@ -69,8 +69,8 @@ LaserGateChar4 = 66
 
 ;Background object characters for lasers
 
-LaserGateChars = $3800+LaserGateChar1*8
-LaserGateCharsBackup = $3808 ;Where old text chars lie
+LaserGateChars = $3800+63*8
+LaserGateCharsBackup = $3f40 ;Where old text chars lie
 
 LevelExitChar = 101 ;The char ID for the top of the flag pole
 
@@ -78,6 +78,11 @@ playerlo = $70
 playerhi = $71
 
 ScrollChar = $3800+114*8
+
+EndLaserLeftChar = $3800+2*8
+EndLaserRightChar = $3800+1*8
+EndLaserDownChar1 = $3800+3*8
+EndLaserDownChar2 = $3800+4*8
 
 ;Alien movement variables (The formation data is based on
 ;Richard's Alien Formation Maker program). X = first 256 bytes, Y = last 256 bytes

@@ -51,9 +51,9 @@ Title          sei
                sta $d015 
                sta $d01c
                sta $d01b
-               lda #$01
+               lda #$0c
                sta $d025
-               lda #$09
+               lda #$0b
                sta $d026
                lda #$0c
                sta ObjPos

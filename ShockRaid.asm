@@ -47,10 +47,12 @@ mapend
       
       ;Main game code
       *=$6200
+      
       !source "onetime.asm"
       !source "titlescreen.asm"
       !source "gamecode.asm"
       !source "hiscore.asm"
+      !source "endscreen.asm"
       ;There should be enough room here (hopefully for alien formation data)
       ;but the code data should be aligned to the nearest $x00 position 
       !align $ff,0
@@ -97,6 +99,11 @@ TILEMEMORY
       *=$b800
       !bin "bin\music2.prg",,2
       
+      ;Import end screen
+      *=$c400
+endscreenmemory
+      
+      !bin "bin\endscreen.bin"
       
       ;Import logo bitmap video RAM data
       *=$c800
@@ -114,6 +121,8 @@ vidram
       *=$f000
       ;Import game sound effects
       !bin "bin\shockraidsfx.prg",,2
+      *=$f400
+endtext      
+      !bin "bin\endtext.bin"
       
-
      
