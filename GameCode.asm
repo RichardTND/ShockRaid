@@ -12,7 +12,7 @@ Game
 NewLevelStart
     
     sei
-    ldx #$fb
+    lda #$fb
     txs
     lda #$35
     sta $01
@@ -142,6 +142,12 @@ ZeroFillGameScreen
     lda #$b8
     sta ObjPos+1
     
+    lda #$10
+    sta ypos
+    lda #0
+    sta $d017
+    sta $d01d
+    sta $d01b
     ldx #<irq1
     ldy #>irq1
     stx $fffe
@@ -149,14 +155,14 @@ ZeroFillGameScreen
     lda #$7f
     sta $dc0d
     sta $dd0d
-    lda #$00
+    lda #$32
     sta $d012
-    sta $d01b
     lda #$1b
     sta $d011
     lda #$01
     sta $d01a
     sta $d019
+    
     lda SoundOption 
     beq .MusicOptionSet
     lda #LevelUpSFX
@@ -202,9 +208,7 @@ ZeroFillGameScreen
     cli
     jmp GameLoop
     
-;Construct main IRQ raster interrupts.
 
-    !source "irq.asm"
     
 ;------------------------------------------------------------------------------------------------    
     
@@ -269,39 +273,10 @@ SyncTimer
       sta ST
       cmp ST
       beq *-3
-      jsr SlowAnimPulse
+      
 .skip rts
       
 
-SlowAnimPulse
-      lda $e1 
-      cmp #1
-      beq .okscroll
-      inc $e1
-      rts
-.okscroll
-      lda #0
-      sta $e1 
-      ldx #$00
-.scrollpulse1
-      lda pulsecharleft1,x
-      asl 
-      rol pulsecharleft2,x
-      rol pulsecharleft1,x 
-      inx
-      cpx #8
-      bne .scrollpulse1
-      ldx #$00
-.scrollpulse2
-      lda pulsecharright1,x
-      lsr
-      ror pulsecharright2,x
-      ror pulsecharright1,x
-      inx
-      cpx #8
-      bne .scrollpulse2
-      rts
-      
 
 ;------------------------------------------------------------------------------------------------
 
@@ -374,14 +349,44 @@ AnimSprites
       sta AlienType15 
       lda AlienType16Frame,x
       sta AlienType16
-      lda CrystalTopLeftFrame,x 
-      sta CrystalTopLeft 
-      lda CrystalTopRightFrame,x
-      sta CrystalTopRight 
-      lda CrystalBottomLeftFrame,x
-      sta CrystalBottomLeft 
-      lda CrystalBottomRightFrame,x
-      sta CrystalBottomRight
+      lda CrystalTypeFrame,x 
+      sta Crystal
+      ;Now do the same for the colour table as some 
+      ;sprites use more than one sprite colour 
+      ;to give them a cool effect 
+      lda AlienType1FrameColour,x
+      sta Alien1TypeColour
+      lda AlienType2FrameColour,x
+      sta AlienType2Colour
+      lda AlienType3FrameColour,x
+      sta AlienType3Colour
+      lda AlienType4FrameColour,x
+      sta AlienType4Colour
+      lda AlienType5FrameColour,x
+      sta AlienType5Colour
+      lda AlienType6FrameColour,x
+      sta AlienType6Colour
+      lda AlienType7FrameColour,x
+      sta AlienType7Colour
+      lda AlienType8FrameColour,x
+      sta AlienType8Colour 
+      lda AlienType9FrameColour,x
+      sta AlienType9Colour 
+      lda AlienType10FrameColour,x
+      sta AlienType10Colour
+      lda AlienType11FrameColour,x
+      sta AlienType11Colour 
+      lda AlienType12FrameColour,x
+      sta AlienType12Colour 
+      lda AlienType13FrameColour,x
+      sta AlienType13Colour 
+      lda AlienType14FrameColour,x
+      sta AlienType14Colour
+      lda AlienType15FrameColour,x
+      sta AlienType15Colour 
+      lda AlienType16FrameColour,x
+      sta AlienType16Colour
+      
       inx
       cpx #4
       beq .loopanimation
@@ -402,35 +407,22 @@ AnimSprites
 ;Scroll main game background data
 
 Scroller
-;      lda ydelay
-;      cmp #1
-;      beq ScrollMain
-;      inc ydelay
-;      jmp .skip ;If not reached delay, jump to nearest RTS command
-      
-      ;Scroll fast enough, reset delay timer and continue to the 
-      ;main scroller routine 
-      
+
 ScrollMain      
- ;     lda #0
- ;     sta ydelay
-      
+
       ;Main scroll controll routine (this controls the smoothness
       ;of the scroll connected to the interrupt (irq1)
       
+      inc ypos
       lda ypos
-      and #$07
-      clc
-      adc #$01
-      tax
-      and #$07
-      sta ypos
-      txa
-      adc #$f8
-      bcs DoHardScroll
+      cmp #$18
+      bpl DoHardScroll
       rts
 
 DoHardScroll
+      lda #$10
+      sta ypos
+      
       jsr FitRows ;Jump subroutine to draw each row to the screen
       
 DoMap lda tileY
@@ -516,6 +508,14 @@ ExitTileLogic
       
       ;Fit each row and perform main scroll 
 FitRows      
+      ldy #$0a
+      dey
+      bne *-1
+      jsr FitRow1
+      jsr FitRow2 
+      jsr flagcheck
+      rts
+FitRow1      
       ldx #$27
 ShiftRows1
        lda row10,x
@@ -542,10 +542,11 @@ ShiftRows1
        sta row1,x
        dex
        bpl ShiftRows1
-       
+       rts
+FitRow2       
        ldx #$27
 ShiftRows2
-        lda #$00
+        lda #fillchar
         sta row20,x
         lda row18,x
         sta row19,x
@@ -568,8 +569,10 @@ ShiftRows2
      
         dex
         bpl ShiftRows2
+        rts
         
 ;Finally a simple subroutine that the end of the flag 
+flagcheck 
 
         ldx #$00
 .checkflag
@@ -699,6 +702,35 @@ ScrollLasers
         cpx #$08
         bne .scrollmorelaserchars
         
+SlowAnimPulse
+      lda $e1 
+      cmp #1
+      beq .okscroll
+      inc $e1
+      rts
+.okscroll
+      lda #0
+      sta $e1 
+      ldx #$00
+.scrollpulse1
+      lda pulsecharleft1,x
+      asl 
+      rol pulsecharleft2,x
+      rol pulsecharleft1,x 
+      inx
+      cpx #8
+      bne .scrollpulse1
+      ldx #$00
+.scrollpulse2
+      lda pulsecharright1,x
+      lsr
+      ror pulsecharright2,x
+      ror pulsecharright1,x
+      inx
+      cpx #8
+      bne .scrollpulse2
+      rts
+      
         rts
         
 
@@ -849,10 +881,6 @@ FireBullet
           
 PlayerBulletProperties
           
-          lda PlayerBulletDestroyed
-          cmp #1
-          beq .donotmovebullet
-        
           ;Set bullet type 
           jsr FlashPlayerBullet
           lda PlayerBulletFrame
@@ -893,36 +921,6 @@ FlashPlayerBullet
           stx PlayerBulletColourPointer
           rts
     
-          ;Bullet has been destroyed by hitting an enemy 
-          
-.donotmovebullet
-
-          lda ExplodeAnimDelay
-          cmp #1
-          beq .doexplosionbullet
-          inc ExplodeAnimDelay 
-          rts
-.doexplosionbullet
-          lda #0
-          sta ExplodeAnimDelay 
-          ldx ExplodeAnimPointer 
-          lda ExplosionFrame,x 
-          sta $07f9
-          lda ExplosionColour,x 
-          sta $d028 
-          inx
-          cpx #ExplosionFrameEnd-ExplosionFrame 
-          beq .restorebullet 
-          inc ExplodeAnimPointer
-          rts
-.restorebullet
-          lda #0
-          sta ExplodeAnimPointer
-          sta ObjPos+2
-          sta PlayerBulletDestroyed
-          rts
-          
-          
 ;------------------------------------------------------------------------------------------------    
           
 ;Test alien properties (Halve speed)
@@ -960,10 +958,44 @@ TestAlien1Properties
           beq .alien1active 
           jsr HoldAlien1
           rts
+
+Alien1Exploder
+          lda Alien1DeathDelay
+          cmp #1
+          beq .explodemain1
+          inc Alien1DeathDelay
+          rts
+.explodemain1
+          lda #0
+          sta Alien1DeathDelay 
+          ldx Alien1DeathPointer 
+          lda ExplosionFrame,x
+          sta $07fa
+          lda #$07
+          sta $d029
+          inx
+          cpx #ExplosionFrameEnd-ExplosionFrame
+          beq .stopexplode1
+          inc Alien1DeathPointer
+          rts
+.stopexplode1
+          ldx #ExplosionFrameEnd-ExplosionFrame-1
+          stx Alien1DeathPointer
+          lda #<BlankSprite 
+          sta A1Type+1
+          lda #>BlankSprite
+          sta A1Type+2
+          lda #0
+          sta Alien1Dead
+          rts
+          
           
    ;Alien is active. Allow it to move.
-          
+
 .alien1active          
+          lda Alien1Dead
+          cmp #1
+          beq Alien1Exploder
 A1Type    lda AlienType1
           sta $07fa 
 A1Colour  lda Alien1TypeColour
@@ -1020,9 +1052,44 @@ TestAlien2Properties
           jsr HoldAlien2
           rts
           
+.alien2explosion
+            
+Alien2Exploder
+          lda Alien2DeathDelay
+          cmp #1
+          beq .explodemain2
+          inc Alien2DeathDelay
+          rts
+.explodemain2
+          lda #0
+          sta Alien2DeathDelay 
+          ldx Alien2DeathPointer 
+          lda ExplosionFrame,x
+          sta $07fb
+          lda #$07
+          sta $d02a
+          inx
+          cpx #ExplosionFrameEnd-ExplosionFrame
+          beq .stopexplode2
+          inc Alien2DeathPointer
+          rts
+.stopexplode2
+          ldx #ExplosionFrameEnd-ExplosionFrame-1
+          stx Alien2DeathPointer
+          lda #<BlankSprite 
+          sta A2Type+1
+          lda #>BlankSprite
+          sta A2Type+2
+          lda #0
+          sta Alien2Dead
+          rts
+          
    ;Alien is active. Allow it to move.
           
 .alien2active          
+          lda Alien2Dead
+          cmp #$01
+          beq .alien2explosion
 A2Type    lda AlienType1
           sta $07fb 
 A2Colour  lda Alien1TypeColour
@@ -1079,9 +1146,44 @@ TestAlien3Properties
           jsr HoldAlien3
           rts
           
+.alienexplosion3
+          lda Alien3DeathDelay
+          cmp #1
+          beq .alien3deathmain
+          inc Alien3DeathDelay
+          rts
+.alien3deathmain
+          lda #0
+          sta Alien3DeathDelay 
+          ldx Alien3DeathPointer
+          lda ExplosionFrame,x
+          sta $07fc
+          lda #$07 
+          sta $d02b
+           
+          inx
+          cpx #ExplosionFrameEnd-ExplosionFrame 
+          beq .stopexplode3
+          inc Alien3DeathPointer
+          rts
+.stopexplode3
+          ldx #ExplosionFrameEnd-ExplosionFrame-1
+          stx Alien3DeathPointer
+          lda #<BlankSprite 
+          sta A3Type+1
+          lda #>BlankSprite
+          sta A3Type+2
+          lda #0
+          sta Alien3Dead
+          rts
+          
+          
    ;Alien is active. Allow it to move.
           
 .alien3active          
+          lda Alien3Dead
+          cmp #1
+          beq .alienexplosion3
 A3Type    lda AlienType1
           sta $07fc
 A3Colour  lda Alien1TypeColour
@@ -1138,9 +1240,45 @@ TestAlien4Properties
           jsr HoldAlien4
           rts
           
+.explosion04
+          lda Alien4DeathDelay
+          cmp #1
+          beq .explode4main
+          inc Alien4DeathDelay 
+          rts
+.explode4main
+          lda #$00
+          sta Alien4DeathDelay
+          ldx Alien4DeathPointer
+          lda ExplosionFrame,x
+          sta $07fd
+          lda #$07
+          sta $d02c
+           
+          inx
+          cpx #ExplosionFrameEnd-ExplosionFrame
+          beq .stopexploder4
+          inc Alien4DeathPointer
+          rts
+.stopexploder4
+          ldx #ExplosionFrameEnd-ExplosionFrame-1
+          stx Alien4DeathPointer
+          lda #<BlankSprite 
+          sta A4Type+1
+          lda #>BlankSprite
+          sta A4Type+2
+          lda #0
+          sta Alien4Dead
+          rts
+          
+          
    ;Alien is active. Allow it to move.
           
 .alien4active          
+          lda Alien4Dead
+          cmp #1
+          beq .explosion04
+          
 A4Type    lda AlienType1
           sta $07fd
 A4Colour  lda Alien1TypeColour
@@ -1197,9 +1335,42 @@ TestAlien5Properties
           jsr HoldAlien5
           rts
           
+.explosion5
+          lda Alien5DeathDelay
+          cmp #1
+          beq .explode5main
+          inc Alien5DeathDelay 
+          rts
+.explode5main
+          lda #$00
+          sta Alien5DeathDelay 
+          ldx Alien5DeathPointer
+          lda ExplosionFrame,x
+          sta $07fe
+          lda #$07
+          sta $d02d
+          inx
+          cpx #ExplosionFrameEnd-ExplosionFrame
+          beq .stopexplode5
+          inc Alien5DeathPointer
+          rts 
+.stopexplode5 
+          lda #ExplosionFrameEnd-ExplosionFrame-1
+          sta Alien5DeathPointer
+          lda #<BlankSprite 
+          sta A5Type+1
+          lda #>BlankSprite
+          sta A5Type+2
+          lda #0
+          sta Alien5Dead
+          rts
+          
    ;Alien is active. Allow it to move.
           
 .alien5active          
+          lda Alien5Dead
+          cmp #1
+          beq .explosion5
 A5Type    lda AlienType1
           sta $07fe
 A5Colour  lda Alien1TypeColour
@@ -1337,6 +1508,12 @@ SelectNextAlien
           sta AwardPoints+1
           lda AlienScoreRangeHi,y
           sta AwardPoints+2
+          lda #0
+          sta Alien1Dead
+          sta Alien2Dead
+          sta Alien3Dead
+          sta Alien4Dead
+          sta Alien5Dead
           ldx #0
 .resetaliengroup          
           lda #0
@@ -1344,6 +1521,7 @@ SelectNextAlien
           inx 
           cpx #AlienPointersEnd-AlienPointersStart
           bne .resetaliengroup
+          
           rts
  
 ;------------------------------------------------------------------------------------------------
@@ -1452,6 +1630,7 @@ PlayerIsHit
 .deductshield
           lda #100
           sta ShieldTime
+cheatlives
           dec Shield
           lda Shield
           cmp #$30
@@ -1504,6 +1683,7 @@ MassExplosionLoop
           jsr ExpandSpritePosition
           jsr ExplodeAllSprites 
           jsr MoveExploder
+          jsr LaserGate
           jmp MassExplosionLoop
           
           ;Explode all sprites animation 
@@ -1611,9 +1791,12 @@ SetGOPosition
           sta BGColour1
           lda #$0b
           sta BGColour2
+          
 GameOverLoop        
           jsr SyncTimer
+           
           jsr ExpandSpritePosition
+          jsr LaserGate
           lda $dc00 
           lsr
           lsr
@@ -1689,7 +1872,16 @@ TestPlayerToAlienCollision
          
           rts
           
-!macro alientoplayertest alienx, alieny, alienframelo {
+;Generate macro code response, in order to check for 
+;the alien's status before calling collision checks
+;with the player ship.         
+
+          
+!macro alientoplayertest aliendead, aliendeathdelay, aliendeathpointer, alienx, alieny, alienframelo {
+  
+          lda aliendead
+          cmp #1
+          beq .nothit
 
           lda alienx 
           cmp ColliderPlayer
@@ -1707,16 +1899,21 @@ TestPlayerToAlienCollision
           lda alienframelo+1
           cmp #<BlankSprite
           beq .nothit
+          lda #0
+          sta aliendeathdelay
+          sta aliendeathpointer
+          lda #1
+          sta aliendead
           jsr PlayerIsHit
 .nothit          
           rts
 }          
           
-TestA2P1  +alientoplayertest ObjPos+4, ObjPos+5, A1Type
-TestA2P2  +alientoplayertest ObjPos+6, ObjPos+7, A2Type
-TestA2P3  +alientoplayertest ObjPos+8, ObjPos+9, A3Type
-TestA2P4  +alientoplayertest ObjPos+10, ObjPos+11, A4Type
-TestA2P5  +alientoplayertest ObjPos+12, ObjPos+13, A5Type
+TestA2P1  +alientoplayertest Alien1Dead, Alien1DeathDelay, Alien1DeathPointer, ObjPos+4, ObjPos+5, A1Type
+TestA2P2  +alientoplayertest Alien2Dead, Alien2DeathDelay, Alien2DeathPointer, ObjPos+6, ObjPos+7, A2Type
+TestA2P3  +alientoplayertest Alien3Dead, Alien3DeathDelay, Alien3DeathPointer, ObjPos+8, ObjPos+9, A3Type
+TestA2P4  +alientoplayertest Alien4Dead, Alien4DeathDelay, Alien4DeathPointer, ObjPos+10, ObjPos+11, A4Type
+TestA2P5  +alientoplayertest Alien5Dead, Alien5DeathDelay, Alien5DeathPointer, ObjPos+12, ObjPos+13, A5Type
 
 
           ;Test alien to player bullet collision 
@@ -1729,8 +1926,15 @@ TestBulletToAlien
           jsr TestA2B4
           jsr TestA2B5
           rts
+          
+;Generate macro response that tests alien status before
+;testing alien sprite to bullet collision.
 
-      !macro alienbullettest alienx, alieny, alienframe {
+!macro alienbullettest aliendead, aliendeathdelay, aliendeathpointer, alienx, alieny, alienframe {
+        
+        lda aliendead
+        cmp #1
+        beq .notshot
         
         lda alienx
         cmp ColliderBullet
@@ -1765,31 +1969,37 @@ TestBulletToAlien
         
         lda SoundOption 
         beq .justaddpoints
-        lda #AlienDeathSFX 
         
+       
+        
+        lda #AlienDeathSFX 
         jsr SFXInit
 .justaddpoints        
+         lda #0
+        sta aliendeathpointer
+        sta aliendeathdelay
+        lda #1
+        sta aliendead
         jsr AwardPoints
         
         
-        ;Destroy the player's bullet (and trigger the explosion routine)
+        ;Home the player's bullet position so that the player can
+        ;fire again.
+        
         
         lda #0
-        sta ExplodeAnimDelay
-        sta ExplodeAnimPointer
-        lda #1
-        sta PlayerBulletDestroyed
+        sta ObjPos+2
         
 .notshot        
         rts
        
         }
       
-TestA2B1  +alienbullettest ObjPos+4, ObjPos+5, A1Type 
-TestA2B2  +alienbullettest ObjPos+6, ObjPos+7, A2Type 
-TestA2B3  +alienbullettest ObjPos+8, ObjPos+9, A3Type 
-TestA2B4  +alienbullettest ObjPos+10, ObjPos+11, A4Type 
-TestA2B5  +alienbullettest ObjPos+12, ObjPos+13, A5Type 
+TestA2B1  +alienbullettest Alien1Dead, Alien1DeathDelay, Alien1DeathPointer, ObjPos+4, ObjPos+5, A1Type 
+TestA2B2  +alienbullettest Alien2Dead, Alien2DeathDelay, Alien2DeathPointer, ObjPos+6, ObjPos+7, A2Type 
+TestA2B3  +alienbullettest Alien3Dead, Alien3DeathDelay, Alien3DeathPointer, ObjPos+8, ObjPos+9, A3Type 
+TestA2B4  +alienbullettest Alien4Dead, Alien4DeathDelay, Alien4DeathPointer, ObjPos+10, ObjPos+11, A4Type 
+TestA2B5  +alienbullettest Alien5Dead, Alien5DeathDelay, Alien5DeathPointer, ObjPos+12, ObjPos+13, A5Type 
 
                  ;Just like with the alien to player collision, assign alien 
                  ;bullet to player collision the same way 
@@ -1852,8 +2062,8 @@ ScoreRange2       jsr ScorePoints
 ScoreRange1       jsr ScorePoints
                   rts
                   
-ScorePoints       inc Score+3
-                  ldx #3
+ScorePoints       inc Score+2
+                  ldx #2
 .doscore          lda Score,x 
                   cmp #$3a
                   bne .scoreok 
@@ -1892,7 +2102,7 @@ TestEnemyBullet
                   ;a new alien bullet
                   
 .timedspawnbullet lda AlienBulletWaitTime
-                  cmp #60 ;Interval
+                  cmp #30 ;Interval
                   beq .launchnewbullet 
                   inc AlienBulletWaitTime
                   
@@ -1928,12 +2138,17 @@ TestEnemyBullet
                   ;Macro code for checking alien status before 
                   ;spawning a deadly bullet to it.
                   
-  !macro spawnbullet alienframe, alienposx, alienposy {
+  !macro spawnbullet aliendead, alienframe, alienposx, alienposy {
     
+                  lda aliendead
+                  cmp #1
+                  beq .cannotspawnyet
                   lda alienframe+1    ;If alien is blank, it is dead
                   cmp #<BlankSprite   ;therefore it should not spawn
                   beq .cannotspawnyet
-                  
+                  lda alienposx 
+                  cmp #$a8 
+                  bcs .cannotspawnyet
                   lda alienposy ;Ensure alien is on screen
                   cmp #$3a
                   bcc .cannotspawnyet
@@ -1955,15 +2170,15 @@ TestEnemyBullet
    }
 
 .alien1bulletspawncheck
-                  +spawnbullet A1Type, ObjPos+4, ObjPos+5
+                  +spawnbullet Alien1Dead, A1Type, ObjPos+4, ObjPos+5
 .alien2bulletspawncheck                  
-                  +spawnbullet A2Type, ObjPos+6, ObjPos+7 
+                  +spawnbullet Alien2Dead, A2Type, ObjPos+6, ObjPos+7 
 .alien3bulletspawncheck
-                  +spawnbullet A3Type, ObjPos+8, ObjPos+9
+                  +spawnbullet Alien3Dead, A3Type, ObjPos+8, ObjPos+9
 .alien4bulletspawncheck
-                  +spawnbullet A4Type, ObjPos+10, ObjPos+11
+                  +spawnbullet Alien4Dead, A4Type, ObjPos+10, ObjPos+11
 .alien5bulletspawncheck
-                  +spawnbullet A5Type, ObjPos+12, ObjPos+13
+                  +spawnbullet Alien5Dead, A5Type, ObjPos+12, ObjPos+13
                   
                   
 ;-----------------------------------------------------------------------------------------------                  
@@ -2002,6 +2217,10 @@ PalNTSCPlayer
                     
        
 ;-------------------------------------------------------------------------------------
+
+;Construct main IRQ raster interrupts.
+
+    !source "irq.asm"
 
 ;Additional assembly source pointers 
 

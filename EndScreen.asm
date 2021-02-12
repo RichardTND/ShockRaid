@@ -105,17 +105,7 @@ EndScreen
           sta $d02a
           sta $d02c 
           
-          ;Setup the crystal 
-          
-          lda CrystalTopLeftFrame
-          sta $07fa
-          lda CrystalBottomLeftFrame
-          sta $07fb
-          lda CrystalTopRightFrame
-          sta $07fc
-          lda CrystalBottomRightFrame 
-          sta $07fd 
-          
+         
           lda #$03
           sta $d029
           sta $d02a
@@ -125,7 +115,8 @@ EndScreen
           lda #%00000100
           sta $d017
           sta $d01d
-          
+          lda Crystal
+          sta $07fa
           lda #$51
           sta ObjPos+4
           lda #$92
@@ -177,7 +168,10 @@ estacky   ldy #$00
 EndLoop1  jsr SyncTimer
           jsr ExpandSpritePosition
           jsr AnimEndBG
+          jsr AnimSprites
           jsr FlashCrystal
+          lda Crystal
+          sta $07fa
           inc enddelay
           lda enddelay
           beq nextscene
@@ -202,6 +196,8 @@ EndLoop2  jsr SyncTimer
           jsr AnimEndBG
           jsr AnimSprites
           jsr FlashCrystal
+          lda Crystal
+          sta $07fa
           lda PlayerType
           sta $07f8 
           lda #$0f
@@ -230,6 +226,8 @@ EndLoop3  jsr SyncTimer
           jsr AnimSprites 
           jsr FlashCrystal
           jsr FlashPlayerBullet
+          lda Crystal
+          sta $07fa
           lda PlayerType
           sta $07f8 
           lda #$0f 
@@ -459,6 +457,10 @@ DisplayEndText
         sta $d017
         sta $d01d
         sta $d015
+        lda #$09
+        sta $d022
+        lda #$01
+        sta $d023
 ;Setup the end text and attribs 
 
         ldx #$00

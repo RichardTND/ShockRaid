@@ -7,7 +7,7 @@
 ;#     For Reset Magazine    #
 ;#############################
 
-
+DiskVersion = 1
       ;Variables 
       !source "vars.asm"
       
@@ -36,7 +36,11 @@ hudattribs
       ;Import game graphics character set
       *=$3800
       !bin "bin\gamecharset.bin"
-      
+      *=$4000
+      !source "diskaccess.asm"
+      ;Moved end screen to $4100 to prevent data overlap 
+      *=$4100
+      !source "endscreen.asm"
    ;Import map data
       *=$4800
 mapstart
@@ -52,7 +56,7 @@ mapend
       !source "titlescreen.asm"
       !source "gamecode.asm"
       !source "hiscore.asm"
-      !source "endscreen.asm"
+      
       ;There should be enough room here (hopefully for alien formation data)
       ;but the code data should be aligned to the nearest $x00 position 
       !align $ff,0

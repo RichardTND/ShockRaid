@@ -71,6 +71,27 @@ Alien3Enabled !byte 0
 Alien4Enabled !byte 0
 Alien5Enabled !byte 0
 
+;Alien dead (corresponds to sprite/sprite collision) 
+
+Alien1Dead    !byte 0
+Alien2Dead    !byte 0
+Alien3Dead    !byte 0
+Alien4Dead    !byte 0
+Alien5Dead    !byte 0
+
+;Alien death delay pointers 
+
+Alien1DeathDelay !byte 0
+Alien1DeathPointer !byte 0
+Alien2DeathDelay !byte 0
+Alien2DeathPointer !byte 0
+Alien3DeathDelay !byte 0
+Alien3DeathPointer !byte 0
+Alien4DeathDelay !byte 0
+Alien4DeathPointer !byte 0
+Alien5DeathDelay !byte 0
+Alien5DeathPointer !byte 0
+
 
 
 AlienPointersEnd
@@ -118,18 +139,24 @@ PlayerBulletFrame
 ;Red electro ship
 AlienType1Frame 
   !byte $8c,$8d,$8e,$8f 
+AlienType1FrameColour 
+  !byte $02,$02,$02,$02  
 Alien1TypeColour
   !byte $02
   
 ;Cyan laser burger 
 AlienType2Frame
   !byte $90,$91,$92,$93
+AlienType2FrameColour 
+  !byte $03,$03,$03,$03  
 AlienType2Colour 
   !byte $03
   
 ;Orange / bronze cylinder droid
 AlienType3Frame
   !byte $94,$95,$96,$97
+AlienType3FrameColour 
+  !byte $08,$08,$08,$08  
   
 AlienType3Colour
   !byte $08
@@ -137,18 +164,24 @@ AlienType3Colour
 ;Red metalic cylinder
 AlienType4Frame
   !byte $98,$99,$9a,$9b
+AlienType4FrameColour 
+  !byte $02,$02,$02,$02
 AlienType4Colour
   !byte $02
   
 ;Grey planetoid
 AlienType5Frame
-  !byte $9c,$9d,$9e,$9f 
+  !byte $9c,$9d,$9e,$9f
+AlienType5FrameColour 
+  !byte $0f,$0f,$0f,$0f
 AlienType5Colour
   !byte $0f
   
 ;Blue tardis booth
 AlienType6Frame
-  !byte $a0,$a1,$a2,$a3 
+  !byte $a0,$a1,$a2,$a3
+AlienType6FrameColour 
+  !byte $06,$06,$06,$06
 AlienType6Colour
   !byte $06  
   
@@ -156,60 +189,81 @@ AlienType6Colour
 
 AlienType7Frame 
   !byte $a4,$a5,$a6,$a7
+AlienType7FrameColour 
+  !byte $0f,$0f,$0f,$0f
 AlienType7Colour
   !byte $0f
   
 ;Light blue alien space ship
 AlienType8Frame 
   !byte $a8,$a9,$aa,$ab
+AlienType8FrameColour 
+  !byte $0e,$0e,$0e,$0e 
 AlienType8Colour  
   !byte $0e
   
 ;Red spinning disc
 AlienType9Frame 
   !byte $ac,$ad,$ae,$af
+AlienType9FrameColour 
+  !byte $02,$02,$02,$02
 AlienType9Colour
   !byte $02
   
-;Green bug
+;Green yellow flashing bug
 AlienType10Frame 
   !byte $b0,$b1,$b2,$b3 
+AlienType10FrameColour 
+  !byte $05,$05,$07,$07
 AlienType10Colour  
-  !byte $05 ;!TO DO, special routine to detect this alien so it can change colour in animation
+  !byte $05 
   
 ;Yellow firefly
 AlienType11Frame 
   !byte $b4,$b5,$b6,$b7 
+AlienType11FrameColour 
+  !byte $07,$07,$07,$07
 AlienType11Colour
   !byte $07
   
 ;Grey rocker
 AlienType12Frame
-  !byte $b8,$b9,$ba,$bb 
+  !byte $b8,$b9,$ba,$bb
+AlienType12FrameColour
+  !byte $0f,$0f,$0f,$0f
 AlienType12Colour
   !byte $0f
   
 ;Cyan bug
 AlienType13Frame 
   !byte $bc,$bd,$be,$bf 
+AlienType13FrameColour 
+  !byte $03,$03,$03,$03
 AlienType13Colour
   !byte $03 
   
 ;Red jelly fish
 AlienType14Frame 
   !byte $c0,$c1,$c2,$c3
+AlienType14FrameColour 
+  !byte $02,$02,$02,$02
 AlienType14Colour  
   !byte $02
   
 ;Green bug invader
 AlienType15Frame
-  !byte $c4,$c5,$c6,$c7 
+  !byte $c4,$c5,$c6,$c7
+AlienType15FrameColour 
+  !byte $05,$05,$03,$03
 AlienType15Colour
   !byte $05
   
 ;Silver exploding football
 AlienType16Frame
-  !byte $c8,$c9,$ca,$cb 
+  !byte $c8,$c9,$ca,$cb
+AlienType16FrameColour 
+  !byte $0f,$0f,$0f,$0f
+
 AlienType16Colour 
   !byte $0f
 
@@ -237,21 +291,17 @@ GameOverPosition
         !byte $40,$60,$50,$60,$60,$60,$70,$60 
         !byte $40,$80,$50,$80,$60,$80,$70,$80 
         
-CrystalTopLeftFrame
-        !byte $dd,$de,$dd,$de 
-CrystalTopRightFrame
-        !byte $df,$e0,$df,$e0 
-CrystalBottomLeftFrame
-        !byte $e1,$e2,$e1,$e2
-CrystalBottomRightFrame
-        !byte $e3,$e4,$e3,$e4
-       
   
 ExplosionFrame !byte $85,$86,$87,$88,$89,$8a,$8b,$ff 
 ExplosionFrameEnd !byte $ff
 ExplosionColour
                !byte $08,$0a,$0f,$07,$0f,$0a,$08,$ff
    
+
+CrystalTypeFrame
+        !byte $dd,$de,$dd,$de 
+Crystal !byte 0               
+               
 ;Player shield flash colour (will be fast flashing)
 
 ShieldFlashColour

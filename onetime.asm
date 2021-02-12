@@ -20,4 +20,9 @@ backuplaser
       bne backuplaser
       lda $02a6
       sta system
+      lda #0
+      sta $d020
+      sta $d021
    
+      
+      jsr LoadHiScores

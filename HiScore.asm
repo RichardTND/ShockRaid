@@ -14,6 +14,9 @@ namelen = 9
 ;Hi Score detection
 
 CheckForHiScore
+          lda #0
+          sta $d015
+          
           
           ldx #$00
 .copyfin  lda Score,x
@@ -54,6 +57,16 @@ CheckForHiScore
           sta NameFinished
           sta JoyDelay
           
+          ;Check if the player cheated if so, hi score
+          ;is not allowed.
+          
+          lda cheatlives+1
+          cmp #$2c
+          beq nohiscoreallowed
+          jmp hiscoreallowed
+nohiscoreallowed 
+          jmp nohiscor
+hiscoreallowed          
           ;Check if the player's score has reached 
           ;a position in the high score table
           
@@ -135,7 +148,7 @@ putname   lda Name,y
           sta ($d1),y
           dey
           bpl putname
-          ;jsr SaveHiScore
+          jsr SaveHiScore
 nohiscor jmp Title          
           
           
@@ -375,8 +388,25 @@ FinishedNow
           
           lda #1
           sta NameFinished
-          rts 
+
+          ;Check for cheat code 
           
+          ldx #0
+cheatcheck
+          lda Name,x
+          cmp CheatName,x
+          bne skipcheat
+          inx 
+          cpx #$09
+          bne cheatcheck
+          
+.activatecheat          
+          
+          lda #$2c
+          sta cheatlives+1
+skipcheat          
+          rts
+
           ;Clear name from illegal characters to 
           ;prevent messy names
           
@@ -432,7 +462,7 @@ NameFinished !byte 0
 Hi_Char  !byte 0
 Name            !text "         "                
 NameEnd
-
+CheatName       !text "laserbeam"
 
 hslo !byte <HiScore1,<HiScore2,<HiScore3,<HiScore4,<HiScore5 
 hshi !byte >HiScore1,>HiScore2,>HiScore3,>HiScore4,>HiScore5
@@ -445,3 +475,5 @@ HiScoreMessage
                 !text "your score has awarded a position in the"
                 !text "             hall of fame.              "
                 !text "         please enter your name         "
+
+                

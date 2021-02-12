@@ -8,29 +8,29 @@ irq1
           sty stacky1+1 
           lda $dc0d     
           sta $dd0d     
-
+          lda #$00
+          sta $d01b
           lda ypos      
-          ora #$10      
+       
           sta $d011     
+          lda #$00
+          sta $d01b
           lda #$03      
           sta $dd00
           lda #$1e    
           sta $d018     
-          lda #$18      
-          sta $d016
+        
           lda BGColour1
           sta $d023
           lda BGColour2
           sta $d022
           lda #$ff
           sta $d015
-        
-;      lda #1
-;      sta $d020
-;          jsr frameset1 
+          sta $d01c
+
           ldx #<irq2    
           ldy #>irq2    
-          lda #$d1  
+          lda #$d0 
           stx $fffe     
           sty $ffff     
           sta $d012     
@@ -44,24 +44,21 @@ stacky1
           rti
 
 irq2      sta stacka2+1
-          lda #0        
-          sta $d021     
+         
           lda #$0b
           sta $d022     
           lda #1
           sta $d023     
-        ;  jsr frameset3
-          
-          ;lda #$ff      
-         ; sta $d01b
+          lda #$ff      
+          sta $d01b
+        
           lda $d011     
           cmp #$15      
           beq flip      
           
           lda #$7b      
           sta $d011     
-        
-
+    
           pha
           pla
           pha
@@ -86,14 +83,16 @@ flip
           sta $dd00
           lda #$12  
           sta $d018     
-          lda #$18     
-          sta $d016     
-;            jsr frameset2            ;     lda #2
-                        ;     sta $d020
-          nop
-          nop
-          ldx #<irq3    
-          ldy #>irq3    
+            
+          lda #0
+          sta $d015
+          sta $d01c
+
+          jsr SoundPlayer             
+         
+          
+          ldx #<irq1   
+          ldy #>irq1    
           lda #$fa      
           stx $fffe     
           sty $ffff     
@@ -107,46 +106,20 @@ stacky2
           ldy #$00      
           rti
 
-irq3      sta stacka3+1
-          stx stackx3+1 
-          sty stacky3+1 
-          lda #$17      
-          sta $d011     
-          lda #$12    
-          sta $d018     
-          lda #$18      
-          sta $d016     
-          lda #$01
-          sta $d022
-          lda #$0b 
-          sta $d023
-          lda #$00
-          sta $d015
-          
-                        ;     lda #3
-                        ;     sta $d020
-          lda #1        
-          sta ST     
-          
+
+nmi         rti
+
+SoundPlayer
+          lda #1
+          sta ST
           lda SoundOption 
           beq .irqmusic
           jsr SFXPlay
-          jmp .irqloop
+          rts
 .irqmusic          
           jsr PalNTSCPlayer
 .irqloop
-          ldx #<irq1    
-          ldy #>irq1    
-          lda #$20      
-          stx $fffe     
-          sty $ffff     
-          sta $d012     
-          asl $d019     
-stacka3
-          lda #$00      
-stackx3
-          ldx #$00      
-stacky3
-          ldy #$00      
-nmi         rti
+          rts
+          
 
+          

@@ -23,6 +23,10 @@ Title          sei
                sta $d019
                sta $d020
                sta $d021
+               sta $d017
+               sta $d01d
+               sta $d01b
+               
                sta XPos
                lda #$81
                sta $dc0d
@@ -213,6 +217,7 @@ TitleLoop       jsr SyncTimer
                 jsr XScroller
                 jsr PageFlipper
                 jsr FlashRoutine
+                jsr LaserGate
                 jsr CheckSoundOption
                 
 .titleleft      lda #4
@@ -413,9 +418,8 @@ StarField       ldx #$00
 .scrollaway     lda ObjPos+4,x
                 clc
                 adc StarSpeed,x
-                cmp #$c0
-                bcc .placestar 
-                lda #0 
+                bcs .placestar 
+                lda #$c0 
 .placestar                
                 sta ObjPos+4,x
                 inx
@@ -434,12 +438,12 @@ StarPosTable    !byte $00,$90
                 !byte $00,$c0
                 !byte $00,$d0
                 
-StarSpeed       !byte $04,$00
-                !byte $02,$00
-                !byte $03,$00
-                !byte $02,$00
-                !byte $04,$00
-                !byte $03,$00
+StarSpeed       !byte $fe,$00
+                !byte $fc,$00
+                !byte $fd,$00
+                !byte $fc,$00
+                !byte $fd,$00
+                !byte $fe,$00
 
                 
                 
@@ -486,36 +490,36 @@ TitleScreenText
                 
 HallOfFameText  !text "             the hall of fame           "
                 !text "           1. "
-HiStart                
+HiScoreTableStart                
 Name1           !text "richard b "
-HiScore1        !text "000000          "
+HiScore1        !text "200000          "
                 !text "           2. "
 Name2           !text "hugues    "
-HiScore2        !text "000000          "
+HiScore2        !text "175000          "
                 !text "           3. "
 Name3           !text "kevin     "
-HiScore3        !text "000000          "
+HiScore3        !text "150000          "
                 !text "           4. "
 Name4           !text "reset     "
-HiScore4        !text "000000          "
+HiScore4        !text "100000          "
                 !text "           5. "
 Name5           !text "tnd       "
-HiScore5        !text "000000          "
-HiEnd
+HiScore5        !text "075000          "
+HiScoreTableEnd
                 !text "         - press fire to play -         "    
   
                 
 ScrollText      
-                !text "  ... the new dimension proudly presents ... "
+                
                 !byte 99,100,99,100 
                 !text " shock raid "
                 !byte 101,102,101,102
                 !text " ...   programming, charset graphics, sound effects and music by richard bayliss ...   "
-                !text "bitmap graphics by hugues (ax!s) poisseroux ...   (c) 2021 the new dimension ...   "
+                !text "bitmap and game graphics and sprites by hugues (ax!s) poisseroux ...   (c) 2021 the new dimension ...   "
                 !text "published by reset magazine issue 14 ...   plug a joystick into port 2 and press left/right "
                 !text "to select in game option ...   during play, press control to pause the game, and "
                 !byte 30
-                !text " (while paused) to abort game and return to this front end, otherwise press fire button to resume play ...   game instructions: this is a fast-paced vertical scrolling shoot 'em up (not s.e.u.c.k) "
+                !text " (while paused) to abort game and return to this front end, otherwise press fire button to commence play ...   game instructions: this is a fast-paced vertical scrolling shoot 'em up (not s.e.u.c.k) "
                 !text "for 1 player only ...   it is the year 2197 ...   an alien planet, zarjon has spiraled out of control and is "
                 !text "heading towards planet earth ...   we have sent in a few pilots and scientists to find out what has caused "
                 !text "this planet to fly so quickly towards our planet ...   it turns out that a crystal stored in the bottom of "
@@ -525,12 +529,8 @@ ScrollText
                 !text "you must then locate the crystal, and destroy it in order to save earth ...   your ship is charged with "
                 !text "9 shields ...   these will be lost if you collide into any aliens, their lasers, the laser gates or "
                 !text "other obstacles ...   once all shields are out, our hope will be lost and earth will be destroyed ...   "
-                !text "you will be rewarded a bonus shield (if shield count is under 9) for every level completed "
-                !text "1000 points will also be awarded as a bonus for you ...   "
-                !text "can you find the energy crystal and destroy it or will life on earth be no more? ...   the fate of planet earth is "
-                !text "in your hands ...    good luck pilot ...   special thank you goes to everybody who has been involved with this "
-                !text "fun game project ...   i love shoot 'em ups, and i really enjoyed making this game production ...   i hope you "
-                !text "like the final result ...   richard sends his greetings to everybody who still develops, draws graphics or "
-                !text "make music for the commodore 64 scene today ...   most important of all a huge greeting goes out to you ...   "
-                !text "press fire to play ...                                                                                        "
+                !text "you will be rewarded a bonus shield (if your shield count is under 9) for every level completed "
+                !text "10000 points will also be awarded as a bonus for you ...   "
+                !text "can you find the power crystal and destroy it or will life on earth be no more? ...   the fate of planet earth is "
+                !text "in your hands ...    good luck pilot ...  - press fire to play - ...                                 "
                 !byte 0

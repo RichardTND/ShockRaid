@@ -130,6 +130,7 @@ pulsecharleft2 = $0800+100*8
 pulsecharright1 = $0800+101*8
 pulsecharright2 = $0800+102*8
 
+fillchar = 170
 
 
 
