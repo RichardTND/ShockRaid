@@ -11,6 +11,9 @@
 ;for example backup the laser beam character set, etc.
       
     ;Backup the laser character set
+      sei
+      lda #$35
+      sta $01
       ldx #$00
 backuplaser
       lda LaserGateChars,x
@@ -23,6 +26,6 @@ backuplaser
       lda #0
       sta $d020
       sta $d021
-   
       
-      jsr LoadHiScores
+      
+      jmp LoadHiScores

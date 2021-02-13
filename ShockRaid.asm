@@ -8,58 +8,94 @@
 ;#############################
 
 DiskVersion = 1
-      ;Variables 
+
+;Insert variables source file
+
       !source "vars.asm"
       
-      ;Generate main program
+;Generate main program
+
       !to "shockraid.prg",cbm
       
+      
+;Insert the title screen text charset
+
       *=$0800
-      ;Import text character set to screen memory
       !bin "bin\textcharset.bin"
-       ;Insert the HUD graphics data
+      
+;Insert the HUD graphics data then 
+;the attributes
+       
       *=$0c00
 hud   !bin "bin\hud.bin"
       !align $100,0
 hudattribs
       !bin "bin\hudattribs.bin"
       
+;Insert music data 1 (Title, In game music and Game Over jingle)
       
       *=$1000
-      ;Import music data
       !bin "bin\music.prg",,2
       
-      ;Import game sprites
+;Insert main game sprites
+      
       *=$2000
       !bin "bin\gamesprites.bin"
       
-      ;Import game graphics character set
+;Insert main game graphics character set
+      
       *=$3800
       !bin "bin\gamecharset.bin"
+      
+;There's a bit of space for DISK access for hi score 
+;saving and loading. 
+      
       *=$4000
       !source "diskaccess.asm"
-      ;Moved end screen to $4100 to prevent data overlap 
+      
+;Insert end screen sequence code
+      
       *=$4100
       !source "endscreen.asm"
-   ;Import map data
+      
+;Insert the game's map (Built from Charpad)
+      
       *=$4800
 mapstart
 MAPDATA 
       !bin "bin\gamemap.bin"
+      
+      ;Mark the start of the map (mapend = starting position)
 mapend
       *=*+10
+       
       
-      ;Main game code
+      
       *=$6200
+;Insert the onetime assembly source code - This is where to jump to after
+;packing/crunching this production.
       
       !source "onetime.asm"
-      !source "titlescreen.asm"
-      !source "gamecode.asm"
-      !source "hiscore.asm"
       
+;Insert title screen code assembly source code
+      
+      !source "titlescreen.asm"
+      
+;Insert the main game code
+      
+      !source "gamecode.asm"
+      
+;Insert the hi-score check routine code 
+      
+      !source "hiscore.asm"
+    
       ;There should be enough room here (hopefully for alien formation data)
       ;but the code data should be aligned to the nearest $x00 position 
       !align $ff,0
+      
+;The following files are the X, and Y tables for each alien movement
+;pattern.
+      
 FormationData01
       !bin "bin\Formation01.prg",,2
 FormationData02
@@ -92,41 +128,56 @@ FormationData15
       !bin "bin\Formation15.prg",,2
 FormationData16
       !bin "bin\Formation16.prg",,2
+
+      ;Insert title screen end (game completion) text
+      *=$a800
+endtext      
+      !bin "bin\endtext.bin"
+            
       
+      ;Insert the game tile data. 
       
-      ;Import game tile data
       *=$b000
 TILEMEMORY
       !bin "bin\gametiles.bin"
       
-      ;Import end music data 
-      *=$b800
-      !bin "bin\music2.prg",,2
+      ;Insert end screen
       
-      ;Import end screen
       *=$c400
 endscreenmemory
-      
       !bin "bin\endscreen.bin"
       
-      ;Import logo bitmap video RAM data
+      ;Insert logo bitmap video RAM data
+      
       *=$c800
-      ;Import logo colour RAM data 
 colram
       !bin "bin\logocolram.prg",,2
+      
+      ;Insert logo bitmap colour RAM data
+      
       *=$cc00
 vidram      
       !bin "bin\logovidram.prg",,2 
       
+      ;Insert title screen scroll text
+      
+      *=$d000
+      !source "scrolltext.asm"
+      
+      
+      ;Insert title screen bitmap graphics data
+      
       *=$e000
-      ;Import logo bitmap data 
       !bin "bin\logobitmap.prg",,2
       
+      ;Insert in game sound effects player data
+      
       *=$f000
-      ;Import game sound effects
       !bin "bin\shockraidsfx.prg",,2
+      
+      ;Insert end screen / hi score music data
+      
       *=$f400
-endtext      
-      !bin "bin\endtext.bin"
+      !bin "bin\music2.prg",,2
       
      

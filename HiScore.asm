@@ -7,22 +7,20 @@
 ;#     For Reset Magazine    #
 ;#############################
 
-scorelen = 6
+scorelen = 5
 listlen = 5
 namelen = 9
-
+storbyt = $07
 ;Hi Score detection
 
 CheckForHiScore
-          lda #0
-          sta $d015
           
           
           ldx #$00
 .copyfin  lda Score,x
           sta FinalScore,x
           inx
-          cpx #6
+          cpx #5
           bne .copyfin
         
           sei
@@ -37,9 +35,11 @@ CheckForHiScore
           lda #$35
           sta $01
           sta FireButton
-          lda #$7f
+          lda #$81
           sta $dc0d
           sta $dd0d
+          lda #0
+          sta $d015
           
           lda #$12
           sta $d018
@@ -90,7 +90,7 @@ posdown   inx
           cpx #listlen 
           bne nextone
           beq nohiscor
-posfound  stx $02
+posfound  stx storbyt
           cpx #listlen-1
           beq lastscor
           
@@ -124,10 +124,10 @@ copyname  lda ($d3),y
           sta ($d1),y 
           dey 
           bpl copyname 
-          cpx $02
+          cpx storbyt
           bne copynext
           
-lastscor  ldx $02
+lastscor  ldx storbyt
           lda hslo,x
           sta $c1
           lda hshi,x
@@ -148,7 +148,7 @@ putname   lda Name,y
           sta ($d1),y
           dey
           bpl putname
-          jsr SaveHiScore
+          jmp SaveHiScore
 nohiscor jmp Title          
           
           
@@ -456,7 +456,7 @@ HiScorePlayer
           
           
 
-FinalScore !byte $30,$30,$30,$30,$30,$30
+FinalScore !byte $30,$30,$30,$30,$30
 JoyDelay !byte 0
 NameFinished !byte 0
 Hi_Char  !byte 0

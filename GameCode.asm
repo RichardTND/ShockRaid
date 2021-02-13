@@ -12,8 +12,7 @@ Game
 NewLevelStart
     
     sei
-    lda #$fb
-    txs
+   
     lda #$35
     sta $01
     lda #$00
@@ -70,6 +69,7 @@ NewLevelStart
     lda #>mapend  ;so find a way to calculate 'mapend' (see above)
     sta map+1     
     
+    
     jsr SetupLevelScheme
     
     ldx #$00
@@ -118,7 +118,7 @@ ZeroFillGameScreen
     lda #$30
     sta Score,x 
     inx
-    cpx #$06
+    cpx #$05
     bne .zeroscore
     
     lda #$39 ;Nine shields
@@ -148,6 +148,9 @@ ZeroFillGameScreen
     sta $d017
     sta $d01d
     sta $d01b
+    ldx #$fb
+    txs
+   
     ldx #<irq1
     ldy #>irq1
     stx $fffe
@@ -302,7 +305,7 @@ ExpandSpritePosition
 
 AnimSprites
       lda SpriteAnimDelay
-      cmp #2
+      cmp #4
       beq .dospriteanim
       inc SpriteAnimDelay
       rts
@@ -590,7 +593,7 @@ flagcheck
         lda LevelPointer
         clc
         adc #$31
-        sta $0796
+        sta LevelIndicator
         
         ;Add an extra life to the player 
         
@@ -895,7 +898,7 @@ BColSM    ;Player bullet self-mod
           lda ObjPos+3
           sec
           sbc #$0b ;Bullet speed
-          cmp #$32 ;Destroy bullet position 
+          cmp #$22 ;Destroy bullet position 
           bcs .storenewbulletposition
           lda #$00
           sta ObjPos+2
@@ -1952,6 +1955,9 @@ TestBulletToAlien
         lda ObjPos+2
         cmp #0
         beq .notshot
+        lda ObjPos+3
+        cmp #$32
+        bcc .notshot
         
          ;Aliens should not be destroyed if shot is exploding
         
@@ -2062,7 +2068,7 @@ ScoreRange2       jsr ScorePoints
 ScoreRange1       jsr ScorePoints
                   rts
                   
-ScorePoints       inc Score+2
+ScorePoints       inc Score+2 ;Units of 100 points
                   ldx #2
 .doscore          lda Score,x 
                   cmp #$3a

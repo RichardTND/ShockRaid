@@ -26,7 +26,7 @@ EndScreen
           lda Score,x
           sta scorebackup,x
           inx 
-          cpx #$06
+          cpx #$05
           bne .backupscore
           
           
@@ -462,7 +462,7 @@ DisplayEndText
         lda #$01
         sta $d023
 ;Setup the end text and attribs 
-
+       
         ldx #$00
 .setendtext      
         lda endtext,x
@@ -487,6 +487,7 @@ DisplayEndText
         sta colour+$2e8,x 
         inx
         bne .setendtext 
+        
         lda #$12
         sta $d018
         lda #$1b

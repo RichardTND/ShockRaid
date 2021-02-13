@@ -45,9 +45,9 @@ stacky1
 
 irq2      sta stacka2+1
          
-          lda #$0b
+          lda #$01
           sta $d022     
-          lda #1
+          lda #$0b
           sta $d023     
           lda #$ff      
           sta $d01b

@@ -8,12 +8,18 @@
 ;#############################
 
 ;Title screen code
-
-Title          sei
+Title
+TitleScreen    sei
+               lda #$34
+               sta $01
+               lda #<ScrollText 
+               sta MessRead+1
+               lda #>ScrollText 
+               sta MessRead+2
+               
+            
                lda #$35
                sta $01
-               lda $fb
-               txs
                ldx #$48
                ldy #$ff
                stx $fffe
@@ -26,6 +32,8 @@ Title          sei
                sta $d017
                sta $d01d
                sta $d01b
+               sta TitleFlashColourPointer
+               sta TitleFlashColourDelay
                
                sta XPos
                lda #$81
@@ -74,10 +82,7 @@ Title          sei
                bne .clrrest 
                sta $e1
                sta FireButton
-               lda #<ScrollText 
-               sta MessRead+1
-               lda #>ScrollText 
-               sta MessRead+2
+              
                ldx #$00
 .paintlogo     lda colram,x
                sta colour,x
@@ -94,6 +99,26 @@ Title          sei
                sta $06e8,x
                inx
                bne .paintlogo
+               
+               ;Fill out the text rows as black 
+               
+               ldx #$00
+.blackout      lda #$00
+               sta colour+(12*40),x 
+               sta colour+(13*40),x
+               sta colour+(14*40),x
+               sta colour+(15*40),x
+               sta colour+(16*40),x
+               sta colour+(17*40),x
+               sta colour+(18*40),x
+               sta colour+(19*40),x
+               sta colour+(20*40),x
+               lda laserscrollcharcolour,x
+               sta colour+(10*40),x
+               sta colour+(22*40),x
+               inx
+               cpx #$28
+               bne .blackout
                jsr DisplayHiScores
                ldx #<tirq1
                ldy #>tirq1
@@ -139,7 +164,10 @@ tirq1          sta tstacka1+1
                sta $d016
                lda #$12
                sta $d018 
-              
+               lda #1
+               sta ST
+               jsr PalNTSCPlayer
+           
                ldx #<tirq2
                ldy #>tirq2
                stx $fffe
@@ -197,9 +225,6 @@ tirq3          sta tstacka3+1
                lda #$12
                sta $d018 
              
-               lda #1
-               sta ST
-               jsr PalNTSCPlayer
                
                ldx #<tirq1
                ldy #>tirq1
@@ -219,6 +244,8 @@ TitleLoop       jsr SyncTimer
                 jsr FlashRoutine
                 jsr LaserGate
                 jsr CheckSoundOption
+                jsr WashColourText
+                
                 
 .titleleft      lda #4
                 bit $dc00 
@@ -258,7 +285,10 @@ XScroller       lda XPos
                 inx
                 cpx #$28
                 bne .shift 
-MessRead        lda ScrollText 
+                lda #$34
+                sta $01
+MessRead        
+                lda ScrollText 
                 bne .storechar
                 lda #<ScrollText 
                 sta MessRead+1
@@ -269,7 +299,11 @@ MessRead        lda ScrollText
                 inc MessRead+1
                 bne .exittextscroll
                 inc MessRead+2
-.exittextscroll rts                
+
+.exittextscroll 
+                lda #$35
+                sta $01            
+                rts
                 
                 ;Display the hi score table 
                 
@@ -278,8 +312,7 @@ DisplayHiScores
                 ldx #$00
 .puthis         lda pulserow2,x 
                 sta screen+10*40,x
-                lda #1 
-                sta colour+10*40,x 
+               
                 lda HallOfFameText,x
                 sta screen+12*40,x 
                 lda HallOfFameText+40,x
@@ -296,8 +329,6 @@ DisplayHiScores
                 sta screen+20*40,x
                 lda pulserow1,x
                 sta screen+22*40,x
-                lda #1
-                sta colour+22*40,x
                 inx
                 cpx #$28
                 bne .puthis
@@ -311,8 +342,6 @@ DisplayCredits
                 ldx #$00
 .putmessage     lda pulserow1,x
                 sta screen+10*40,x
-                lda #$01
-                sta colour+10*40,x
                 lda TitleScreenText,x
                 sta screen+12*40,x
                 lda TitleScreenText+40,x
@@ -329,9 +358,6 @@ DisplayCredits
                 sta screen+20*40,x
                 lda pulserow2,x 
                 sta screen+22*40,x
-                lda #$01
-                sta colour+22*40,x
-               
                 inx
                 cpx #40
                 bne .putmessage
@@ -344,11 +370,7 @@ ClearNecessaryRows
                 sta screen+10*40+$100,x
                 sta screen+$200,x
                 sta screen+$2e8-40,x
-                lda #12
-                sta colour+10*40,x
-                sta colour+10*40+$100,x
-                sta colour+$200,x
-                sta colour+$2e8-40,x
+               
                 inx
                 bne .clrloop 
                 rts
@@ -380,6 +402,8 @@ PageFlipper     lda PageTimer
                 lda #0
                 sta PageNo
                 rts
+                
+                ;The main flash routine in action
                 
 FlashRoutine    lda FlashDelay
                 cmp #2
@@ -427,6 +451,80 @@ StarField       ldx #$00
                 cpx #$0c
                 bne .scrollaway
                 rts
+                
+
+;Colour flash routine (washing) for title screen text 
+;scroll text remains as it is.
+
+WashColourText  
+                lda TitleFlashColourDelay
+                cmp #2
+                beq .flashtitlemain
+                inc TitleFlashColourDelay
+                rts
+.flashtitlemain lda #0
+                sta TitleFlashColourDelay
+                ldx TitleFlashColourPointer
+                lda TitleFlashColourTable,x
+                sta colour+(12*40)+39
+                sta colour+(13*40)
+                sta colour+(14*40)+39
+                sta colour+(15*40)
+                sta colour+(16*40)+39
+                sta colour+(17*40)
+                sta colour+(18*40)+39
+                sta colour+(19*40)
+              
+                sta colour+(20*40)+39
+                inx
+                cpx #TitleFlashColourEnd-TitleFlashColourTable 
+                beq .looptitleflash
+                inc TitleFlashColourPointer
+                jsr StoreColourToText
+                rts                
+.looptitleflash
+                ldx #$00
+                stx TitleFlashColourPointer
+                 
+                
+                ;Main colour washing to each text row left
+StoreColourToText
+                jsr WashColourTextLeft
+                jsr WashColourTextRight 
+                rts
+                
+WashColourTextLeft 
+                
+                ldx #$00
+.washleft       lda colour+(12*40)+1,x
+                sta colour+(12*40),x
+                lda colour+(14*40)+1,x
+                sta colour+(14*40),x
+                lda colour+(16*40)+1,x
+                sta colour+(16*40),x 
+                lda colour+(18*40)+1,x
+                sta colour+(18*40),x
+                lda colour+(20*40)+1,x
+                sta colour+(20*40),x
+                inx
+                cpx #$28
+                bne .washleft
+                rts
+
+WashColourTextRight 
+
+                ldx #$27
+.washright      lda colour+(13*40)-1,x
+                sta colour+(13*40),x
+                lda colour+(15*40)-1,x
+                sta colour+(15*40),x
+                lda colour+(17*40)-1,x
+                sta colour+(17*40),x
+                lda colour+(19*40)-1,x
+                sta colour+(19*40),x
+                dex
+                bpl .washright
+                rts                
                 
 MusicSprite !byte $d6
 SFXSprite !byte $d7
@@ -478,59 +576,54 @@ scrollcharcolour !byte $09,$0b,$0c,$0f,$07
                  !byte $01,$01,$01,$01,$01
                  !byte $01,$01,$01,$01,$07
                  !byte $0f,$0c,$0b,$09,$09
+                 
+laserscrollcharcolour
+                 !byte $09,$0b,$0c,$0f,$07
+                 !byte $01,$01,$01,$01,$01
+                 !byte $01,$01,$01,$01,$01
+                 !byte $01,$01,$01,$01,$01
+                 !byte $01,$01,$01,$01,$01
+                 !byte $01,$01,$01,$01,$01
+                 !byte $01,$01,$01,$01,$01
+                 !byte $07,$0f,$0c,$0b,$09
+                 
+                 
 TitleScreenText
                 
                 !text "       (c) 2021 the new dimension       "
-                !text " programming          richard bayliss   "
-                !text " graphics             richard bayliss   "
-                !text "                      hugues poisseroux "
-                !text " sfx+music            richard bayliss   "
+                !text " programming ........ richard bayliss   "
+                !text " charset ............ richard bayliss   "
+                !text " graphics+sprites ... hugues poisseroux "
+                !text " sfx+music .......... richard bayliss   "
                 !text "        use a joystick in port 2        "
                 !text "         - press fire to play -         "
                 
-HallOfFameText  !text "             the hall of fame           "
+HallOfFameText  !text "            the hall of fame            "
+                
                 !text "           1. "
 HiScoreTableStart                
 Name1           !text "richard b "
-HiScore1        !text "200000          "
+HiScore1        !text "09000           "
                 !text "           2. "
 Name2           !text "hugues    "
-HiScore2        !text "175000          "
+HiScore2        !text "07500           "
                 !text "           3. "
 Name3           !text "kevin     "
-HiScore3        !text "150000          "
+HiScore3        !text "05000           "
                 !text "           4. "
 Name4           !text "reset     "
-HiScore4        !text "100000          "
+HiScore4        !text "02500           "
                 !text "           5. "
 Name5           !text "tnd       "
-HiScore5        !text "075000          "
+HiScore5        !text "00500           "
+HiScoreTableEnd
 HiScoreTableEnd
                 !text "         - press fire to play -         "    
   
-                
-ScrollText      
-                
-                !byte 99,100,99,100 
-                !text " shock raid "
-                !byte 101,102,101,102
-                !text " ...   programming, charset graphics, sound effects and music by richard bayliss ...   "
-                !text "bitmap and game graphics and sprites by hugues (ax!s) poisseroux ...   (c) 2021 the new dimension ...   "
-                !text "published by reset magazine issue 14 ...   plug a joystick into port 2 and press left/right "
-                !text "to select in game option ...   during play, press control to pause the game, and "
-                !byte 30
-                !text " (while paused) to abort game and return to this front end, otherwise press fire button to commence play ...   game instructions: this is a fast-paced vertical scrolling shoot 'em up (not s.e.u.c.k) "
-                !text "for 1 player only ...   it is the year 2197 ...   an alien planet, zarjon has spiraled out of control and is "
-                !text "heading towards planet earth ...   we have sent in a few pilots and scientists to find out what has caused "
-                !text "this planet to fly so quickly towards our planet ...   it turns out that a crystal stored in the bottom of "
-                !text "mines appear to be the source ...   our people tried to remove the crystal in order to stop the planet "
-                !text "but they got destroyed by the alien forces ...   this is where you come in ...   your mission is to "
-                !text "enter the alien planet zarj, fly through the 4 underground lairs and do battle against the aliens ...   "
-                !text "you must then locate the crystal, and destroy it in order to save earth ...   your ship is charged with "
-                !text "9 shields ...   these will be lost if you collide into any aliens, their lasers, the laser gates or "
-                !text "other obstacles ...   once all shields are out, our hope will be lost and earth will be destroyed ...   "
-                !text "you will be rewarded a bonus shield (if your shield count is under 9) for every level completed "
-                !text "10000 points will also be awarded as a bonus for you ...   "
-                !text "can you find the power crystal and destroy it or will life on earth be no more? ...   the fate of planet earth is "
-                !text "in your hands ...    good luck pilot ...  - press fire to play - ...                                 "
-                !byte 0
+TitleFlashColourDelay !byte 0
+TitleFlashColourPointer !byte 0
+
+TitleFlashColourTable
+                !byte $09,$0b,$0c,$0f,$07,$01,$07,$0f,$0c
+TitleFlashColourEnd !byte $0b
+

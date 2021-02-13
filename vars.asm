@@ -122,8 +122,12 @@ F15Y = FormationData15 + $100
 F16X = FormationData16
 F16Y = FormationData16 + $100
 
-Score = $0778
-Shield = $07B0-40
+;VIC2 BANK 3 - Screen character position where each feature
+;lies.
+
+Score = $0777   ;Position of the 5-digit score panel 
+Shield = $0787  ;Position of the 1 digit shield counter
+LevelIndicator = $0796 ;Position of the player level indicator
 
 pulsecharleft1 = $0800+99*8
 pulsecharleft2 = $0800+100*8 
@@ -145,8 +149,8 @@ EndMusic = 3
 MusicInit = $1000
 MusicPlay = $1003
 
-MusicInit2 = $b800
-MusicPlay2 = $b803
+MusicInit2 = $f400
+MusicPlay2 = $f403
 
 ;SFX Variables 
 
