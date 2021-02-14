@@ -12,7 +12,8 @@ Game
 NewLevelStart
     
     sei
-   
+    lda #$00
+    sta tileY
     lda #$35
     sta $01
     lda #$00
@@ -863,7 +864,8 @@ FireBullet
           
           ;Position bullet where player is 
 .doplayerfirebullet
-
+          lda #$84
+          sta $07f9 
           lda ObjPos
           sta ObjPos+2 ;Player Bullet X to Player X
           lda ObjPos+1
@@ -886,8 +888,7 @@ PlayerBulletProperties
           
           ;Set bullet type 
           jsr FlashPlayerBullet
-          lda PlayerBulletFrame
-          sta $07f9 
+          
 BColSM    ;Player bullet self-mod
           lda #$0d
           sta $d028

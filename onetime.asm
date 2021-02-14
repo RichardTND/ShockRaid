@@ -26,6 +26,6 @@ backuplaser
       lda #0
       sta $d020
       sta $d021
-      
+    
       
       jmp LoadHiScores

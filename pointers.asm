@@ -210,11 +210,11 @@ AlienType9FrameColour
 AlienType9Colour
   !byte $02
   
-;Green yellow flashing bug
+;Green cyan flashing bug
 AlienType10Frame 
   !byte $b0,$b1,$b2,$b3 
 AlienType10FrameColour 
-  !byte $05,$05,$07,$07
+  !byte $05,$05,$03,$03
 AlienType10Colour  
   !byte $05 
   
@@ -238,7 +238,7 @@ AlienType12Colour
 AlienType13Frame 
   !byte $bc,$bd,$be,$bf 
 AlienType13FrameColour 
-  !byte $03,$03,$03,$03
+  !byte $03,$03,$07,$07
 AlienType13Colour
   !byte $03 
   

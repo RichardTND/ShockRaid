@@ -325,6 +325,7 @@ DestroyEverything
 endscene5           
 EndLoop5
            jsr SyncTimer
+           
            jsr ExpandSpritePosition
            jsr AnimSprites
            jsr Surge
@@ -457,9 +458,9 @@ DisplayEndText
         sta $d017
         sta $d01d
         sta $d015
-        lda #$09
-        sta $d022
         lda #$01
+        sta $d022
+        lda #$09
         sta $d023
 ;Setup the end text and attribs 
        
@@ -495,7 +496,7 @@ DisplayEndText
         
 EndLoopFinal
         jsr SyncTimer
-        
+        jsr LaserGate
         lda $dc00
         lsr
         lsr
@@ -514,7 +515,7 @@ EndLoopFinal
         lda scorebackup,x
         sta Score,x
         inx
-        cpx #6
+        cpx #5
         bne .restorescore
         
         

@@ -59,7 +59,7 @@ drawpic             lda vid,x
 DisplayLoop                    
                     lda $dc01
                     cmp #$ef
-                    bne DisplayLoop2
+                    bne DisplayLoop2 
                     jmp Exit
 DisplayLoop2                    
                     lda #16
