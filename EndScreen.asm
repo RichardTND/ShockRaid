@@ -42,7 +42,7 @@ EndScreen
           sta screen+$200,x
           lda endscreenmemory+$2e8,x
           sta screen+$2e8,x
-          lda #$0f
+          lda #$09
           sta $d800,x
           sta $d900,x
           sta $da00,x
@@ -74,9 +74,9 @@ EndScreen
           
           ;Now setup the screen perameters.
           
-          lda #$09
+          lda #$0f
           sta $d022
-          lda #$08
+          lda #$0b
           sta $d023
           lda #$18
           sta $d016
@@ -410,27 +410,28 @@ AnimEndBG
          
          ldx #0
 .sleft         
-         lda EndLaserLeftChar,x
+         lda EndLaserLeftChar1,x
          asl
-         rol EndLaserLeftChar,x 
+         rol EndLaserRightChar1,x
+         rol EndLaserLeftChar1,x 
          asl
-         rol EndLaserLeftChar,x
+         rol EndLaserRightChar1,x
+         rol EndLaserLeftChar1,x
          inx
          cpx #8
          bne .sleft 
          
-         ;Right lasers
-         
          ldx #0
-.sright 
-         lda EndLaserRightChar,x
-         lsr
-         ror EndLaserRightChar,x
-         lsr
-         ror EndLaserRightChar,x
+.sleft2  lda EndLaserLeftChar2,x
+         asl
+         rol EndLaserRightChar2,x
+         rol EndLaserLeftChar2,x 
+         asl
+         rol EndLaserRightChar2,x
+         rol EndLaserLeftChar2,x
          inx
-         cpx #8 
-         bne .sright
+         cpx #8
+         bne .sleft2
          rts
          
 ;Flash the crystal 
@@ -488,6 +489,13 @@ DisplayEndText
         sta colour+$2e8,x 
         inx
         bne .setendtext 
+        ldx #$00
+.restorelaserbeams
+        lda LaserGateCharsBackup,x
+        sta LaserGateChars,x
+        inx
+        cpx #64
+        bne .restorelaserbeams
         
         lda #$12
         sta $d018
@@ -519,8 +527,7 @@ EndLoopFinal
         bne .restorescore
         
         
-        jmp CheckForHiScore
-        
+        jmp HiScoreRoutine
         
         
 BulletSpawnCount !byte 0
@@ -542,8 +549,8 @@ spriteexploder
           
          
 surgetable1
-         !byte $09,$09,$08,$07,$08,$09,$09,$09,$09,$09,$09,$09                  
+         !byte $0b,$0c,$0f,$07,$01,$07,$0f,$0c,$0b,$0b,$0b,$0b                  
 surgetable2
-         !byte $08,$08,$07,$01,$07,$08,$08,$08,$08,$08,$08,$08
+         !byte $0c,$0c,$0f,$07,$01,$07,$0f,$0c,$0c,$0c,$0c,$0c
          
 scorebackup !fill 6,0         

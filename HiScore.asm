@@ -7,15 +7,27 @@
 ;#     For Reset Magazine    #
 ;#############################
 
-scorelen = 5
-listlen = 5
-namelen = 9
-storbyt = $07
-;Hi Score detection
-
-CheckForHiScore
+HiScoreRoutine
           
+     
+               lda #$35
+               sta $01
+               ldx #$48
+               ldy #$ff
+               stx $fffe
+               sty $ffff
+               lda #$00
+               sta $d01a
+               sta $d019
+               sta $d020
+               sta $d021
+               sta $d017
+               sta $d01d
+               sta $d01b
+          cli
           
+          lda #0
+          sta FireButton
           ldx #$00
 .copyfin  lda Score,x
           sta FinalScore,x
@@ -23,29 +35,13 @@ CheckForHiScore
           cpx #5
           bne .copyfin
         
-          sei
-          ldx #$48
-          ldy #$ff
-          stx $fffe
-          sty $ffff
-          lda #$00
-          sta $d019
-          sta $d01a
-          sta $d011
-          lda #$35
-          sta $01
-          sta FireButton
-          lda #$81
-          sta $dc0d
-          sta $dd0d
-          lda #0
-          sta $d015
+         
           
           lda #$12
           sta $d018
           ldx #$00
-          lda #$00
-.silence  sta $d400,x
+.silence  lda #$00
+          sta $d400,x
           inx
           cpx #$18
           bne .silence

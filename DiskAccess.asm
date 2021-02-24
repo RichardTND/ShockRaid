@@ -6,6 +6,7 @@ dnamelen = *-dname
 
 
 SaveHiScore:
+      
       jsr DisableInts 
       jsr savefile
       lda #$35 
@@ -14,6 +15,7 @@ SkipHiScoreSaver:
       jmp TitleScreen
       
 LoadHiScores:
+      
       jsr DisableInts 
       jsr loadfile
 SkipHiScoreLoader:

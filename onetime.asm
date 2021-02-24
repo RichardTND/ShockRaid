@@ -19,7 +19,7 @@ backuplaser
       lda LaserGateChars,x
       sta LaserGateCharsBackup,x
       inx
-      cpx #32
+      cpx #64
       bne backuplaser
       lda $02a6
       sta system

@@ -58,6 +58,8 @@ hudattribs
       *=$4100
       !source "endscreen.asm"
       
+CharsBackupMemory
+      !align $ff,0 
 ;Insert the game's map (Built from Charpad)
       
       *=$4800

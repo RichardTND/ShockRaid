@@ -20,9 +20,9 @@ irq1
           lda #$1e    
           sta $d018     
         
-          lda BGColour1
-          sta $d023
           lda BGColour2
+          sta $d023
+          lda BGColour1
           sta $d022
           lda #$ff
           sta $d015

@@ -311,8 +311,8 @@ ShieldFlashColourEnd
                
 ;Background colour properties for each level change
 
-D022Colour !byte $03,$0a,$0c,$05,$0e
-D023Colour !byte $0e,$08,$09,$09,$06 
+D022Colour !byte $03,$0d,$08,$0f,$0e
+D023Colour !byte $0e,$05,$09,$0b,$06 
 
 ;Player bullet flashing colour scheme (must be super fast)
 
@@ -413,7 +413,3 @@ screenhi      !byte $04,$04,$04,$04,$04,$04,$04,$05,$05,$05,$05,$05
               
 !align $100,0
  
-;Import game start screen
-startscreen
-  !bin "bin\startscreen.bin"              
-  

@@ -14,6 +14,8 @@ NewLevelStart
     sei
     lda #$00
     sta tileY
+    ldx $fb
+    txs
     lda #$35
     sta $01
     lda #$00
@@ -75,13 +77,13 @@ NewLevelStart
     
     ldx #$00
 ZeroFillGameScreen
-    lda startscreen,x
+    lda #0
     sta screen,x
-    lda startscreen+$100,x
+    
     sta screen+$100,x
-    lda startscreen+$200,x
+    
     sta screen+$200,x
-    lda startscreen+$2e8,x
+    
     sta screen+$2e8,x
     lda #$09 ;Fill multicolour WHITE
     sta colour,x
@@ -656,7 +658,7 @@ TriggerLaserMode
         lda #$00
         sta LaserGateChars,x
         inx
-        cpx #32
+        cpx #64
         bne .remove
         lda #1
         sta LaserTriggerOn
@@ -671,7 +673,7 @@ ActivateLaserGate
         lda LaserGateCharsBackup,x
         sta LaserGateChars,x
         inx
-        cpx #32
+        cpx #64
         bne .backupchars
         lda #0
         sta LaserTriggerOn
@@ -681,7 +683,7 @@ ActivateLaserGate
 ScrollLasers
         
         ldx #$00
-.scrolllaserchars
+.scrolllasers1
         lda LaserGateChars,x
         asl 
         rol LaserGateChars+8,x
@@ -691,10 +693,10 @@ ScrollLasers
         rol LaserGateChars,x
         inx
         cpx #$08
-        bne .scrolllaserchars
+        bne .scrolllasers1
         
         ldx #$00
-.scrollmorelaserchars
+.scrolllasers2
         lda LaserGateChars+16,x
         asl
         rol LaserGateChars+24,x
@@ -704,7 +706,33 @@ ScrollLasers
         rol LaserGateChars+16,x
         inx
         cpx #$08
-        bne .scrollmorelaserchars
+        bne .scrolllasers2
+        
+        ldx #$00
+.scrolllasers3
+        lda LaserGateChars+32,x
+        asl
+        rol LaserGateChars+40,x
+        rol LaserGateChars+32,x
+        asl
+        rol LaserGateChars+40,x
+        rol LaserGateChars+32,x 
+        inx
+        cpx #$08
+        bne .scrolllasers3
+        
+        ldx #$00
+.scrolllasers4
+        lda LaserGateChars+48,x 
+        asl
+        rol LaserGateChars+56,x 
+        rol LaserGateChars+48,x 
+        asl
+        rol LaserGateChars+56,x 
+        rol LaserGateChars+48,x 
+        inx
+        cpx #$08 
+        bne .scrolllasers4
         
 SlowAnimPulse
       lda $e1 
@@ -1573,7 +1601,8 @@ CheckCharType
          
           ;Check for laser gate chars 
           lda (playerlo),y
-          
+          cmp #242
+          beq .playersafe1
           cmp #LaserGateChar1
           beq LaserGateCollisionTest 
           cmp #LaserGateChar2
@@ -1582,31 +1611,24 @@ CheckCharType
           beq LaserGateCollisionTest 
           cmp #LaserGateChar4
           beq LaserGateCollisionTest
+          cmp #LaserGateChar5 
+          beq LaserGateCollisionTest
+          cmp #LaserGateChar6 
+          beq LaserGateCollisionTest 
+          cmp #LaserGateChar7 
+          beq LaserGateCollisionTest 
+          cmp #LaserGateChar8 
+          beq LaserGateCollisionTest
           
-
           ;Check for killer chars (except for gate, as that was checked beforehand)
          
           cmp #KillerCharsRangeStartGroup1 
-          bcc .playersafe1
+          bcc .playersafe
           cmp #KillerCharsRangeEndGroup2
-          bcs .playersafe1
+          bcs .playersafe
+          
 .playersafe1
-          cmp #37
-          beq .playersafe
-          cmp #0
-          beq .playersafe
-          cmp #120
-          beq .playersafe
-          cmp #121
-          beq .playersafe
-          cmp #122
-          beq .playersafe
-          cmp #123
-          beq .playersafe
-          cmp #124
-          beq .playersafe
-          cmp #125
-          beq .playersafe
+          
          
           jmp PlayerIsHit 
 .playersafe
@@ -1800,7 +1822,7 @@ GameOverLoop
           jsr SyncTimer
            
           jsr ExpandSpritePosition
-          jsr LaserGate
+          
           lda $dc00 
           lsr
           lsr
@@ -1811,9 +1833,7 @@ GameOverLoop
           ror FireButton 
           bmi GameOverLoop
           bvc GameOverLoop
-          lda #0
-          sta FireButton 
-          jmp CheckForHiScore
+          jmp HiScoreRoutine
           
 ;-----------------------------------------------------------------------------------------------
 
@@ -2221,8 +2241,7 @@ PalNTSCPlayer
 .playerloop         lda #0
                     sta NTSCTimer
                     rts
-                    
-       
+                           
 ;-------------------------------------------------------------------------------------
 
 ;Construct main IRQ raster interrupts.
