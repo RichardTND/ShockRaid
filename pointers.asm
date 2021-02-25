@@ -16,6 +16,8 @@ FireButton !byte 0
 BGColour1 !byte 0 ;Custom pointer for setting background colour ($d023)
 BGColour2 !byte 0 ;                                             ($d022)
        
+GameOverIsOn !byte 0 
+
 GamePointersStart
 ST !byte 0 ;Sync Timer (ST)
 ypos !byte 0  ;Smooth scroll control byte
@@ -24,8 +26,15 @@ LaserTriggerOn !byte 0
 LaserTriggerTime !byte 0    
 LevelPointer !byte 0 ;Game level pointers
 
-;Sprite animation pointers
+;Scroller temp pointers
 
+ScrollCharTemp !byte 0
+ScrollCharTemp2 !byte 0
+ScrollCharTemp3 !byte 0
+ScrollCharTemp4 !byte 0
+
+;Sprite animation pointers
+BlankSprite !byte $d5
 SpriteAnimDelay !byte 0 ;Control delay of sprite animation
 SpriteAnimPointer !byte 0 ;Controls actual pointer for sprite animation
 ExplodeAnimDelay !byte 0
@@ -119,10 +128,11 @@ CrystalTopLeft !byte 0
 CrystalTopRight !byte 0
 CrystalBottomLeft !byte 0
 CrystalBottomRight !byte 0
-BlankSprite !byte $ff
+GamePointersEnd !byte 0
 SpriteFrameEnd
-!byte 0
-GamePointersEnd
+!byte $d5
+
+
 ;Self mod Sprite object position table (filled with blank)
 ObjPos !byte $00,$00,$00,$00,$00,$00,$00,$00
        !byte $00,$00,$00,$00,$00,$00,$00,$00
@@ -292,10 +302,10 @@ GameOverPosition
         !byte $40,$80,$50,$80,$60,$80,$70,$80 
         
   
-ExplosionFrame !byte $85,$86,$87,$88,$89,$8a,$8b,$ff 
-ExplosionFrameEnd !byte $ff
+ExplosionFrame !byte $85,$86,$87,$88,$89,$8a,$8b,$d5
+ExplosionFrameEnd !byte $d5
 ExplosionColour
-               !byte $08,$0a,$0f,$07,$0f,$0a,$08,$ff
+               !byte $08,$0a,$0f,$07,$0f,$0a,$08,$08
    
 
 CrystalTypeFrame
@@ -412,4 +422,4 @@ screenhi      !byte $04,$04,$04,$04,$04,$04,$04,$05,$05,$05,$05,$05
               !byte $07
               
 !align $100,0
- 
+startscreen   !bin "bin\startscreen.bin"

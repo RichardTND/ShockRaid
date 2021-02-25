@@ -135,7 +135,9 @@ FormationData16
       *=$a800
 endtext      
       !bin "bin\endtext.bin"
-            
+      *=$ac00
+endscreen2
+      !bin "bin\endscreen2.bin"
       
       ;Insert the game tile data. 
       

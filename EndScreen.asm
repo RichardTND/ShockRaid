@@ -29,6 +29,15 @@ EndScreen
           cpx #$05
           bne .backupscore
           
+          ;Grab all of the lasers 
+          
+          ldx #$00
+RestoreLasersForEnd
+          lda LaserGateCharsBackup,x
+          sta LaserGateChars,x
+          inx
+          cpx #64
+          bne RestoreLasersForEnd
           
           ;Draw the end scene map
           
@@ -248,20 +257,18 @@ nextscene4 lda #0
            sta enddelay 
            
            ldx #$00
-delete     lda screen,x
-           jsr checktodelete 
-           sta screen,x 
-           lda screen+$100,x
-           jsr checktodelete 
-           sta screen+$100,x 
-           lda screen+$200,x 
-           jsr checktodelete 
-           sta screen+$200,x 
-           lda screen+$2e8,x 
-           jsr checktodelete 
-           sta screen+$2e8,x
+makeendscreen2           
+           lda endscreen2,x
+           sta $0400,x
+           lda endscreen2+$100,x
+           sta $0500,x
+           lda endscreen2+$200,x
+           sta $0600,x 
+           lda endscreen2+$2e8,x
+           sta $06e8,x
            inx
-           bne delete
+           bne makeendscreen2
+           
            jmp EndLoop4
 checktodelete
            cmp #1
@@ -290,6 +297,7 @@ EndLoop4
            jmp EndLoop4
            
 DestroyEverything 
+         
            lda cp2b
            cmp #2
            beq .doit

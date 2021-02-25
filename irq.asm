@@ -13,6 +13,7 @@ irq1
           lda ypos      
        
           sta $d011     
+         
           lda #$00
           sta $d01b
           lda #$03      
@@ -27,7 +28,10 @@ irq1
           lda #$ff
           sta $d015
           sta $d01c
-
+           ;Main scroll controll routine (this controls the smoothness
+      ;of the scroll connected to the interrupt (irq1)
+      jsr SmartBackgroundScroll
+       
           ldx #<irq2    
           ldy #>irq2    
           lda #$d0 
@@ -87,7 +91,7 @@ flip
           lda #0
           sta $d015
           sta $d01c
-
+          
           jsr SoundPlayer             
          
           
@@ -120,6 +124,7 @@ SoundPlayer
           jsr PalNTSCPlayer
 .irqloop
           rts
+          
           
 
           

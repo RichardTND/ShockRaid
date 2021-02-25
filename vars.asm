@@ -56,39 +56,40 @@ DownStopPos = $ba
 LeftStopPos = $0e
 RightStopPos = $a0
 
-KillerCharsRangeStartGroup1 = 23 
-KillerCharsRangeEndGroup1 = 69
-KillerCharsRangeStartGroup2 = 81
-KillerCharsRangeEndGroup2 = 231
+KillerCharsRangeStartGroup1 = 44
+KillerCharsRangeEndGroup2 = 240
 
 
-LaserGateChar1 = 234
-LaserGateChar2 = 235
-LaserGateChar3 = 236
-LaserGateChar4 = 237
-LaserGateChar5 = 238
-LaserGateChar6 = 239
-LaserGateChar7 = 240
-LaserGateChar8 = 241
+LaserGateChar1 = 241
+LaserGateChar2 = 242
+LaserGateChar3 = 243
+LaserGateChar4 = 244
+LaserGateChar5 = 245
+LaserGateChar6 = 246
+LaserGateChar7 = 247
+LaserGateChar8 = 248
 ;Background object characters for lasers
 
-LaserGateChars = $3800+(234*8) ;Starting character set for the laser gate objects
+LaserGateChars = $3800+(241*8) ;Starting character set for the laser gate objects
 
 LaserGateCharsBackup = CharsBackupMemory ;Where old text chars lie ;BACKUP
 
-LevelExitChar = 70 ;The char ID for the top of the flag pole
+LevelExitChar = 27 ;The char ID for the top of the flag pole
 
 playerlo = $70 ;Zero pages set for the player 
 playerhi = $71
 
-ScrollChar = $3800+(143*8) ;The the scrolling void
+ScrollChar = $3800+(29*8) ;The the scrolling void
+ScrollChar2 = $3800+(30*8)
+ScrollChar3 = $3800+(35*8)
+ScrollChar4 = $3800+(193*8)
 
-EndLaserLeftChar1 = $3800+(238*8)
-EndLaserRightChar1 = $3800+(239*8)
-EndLaserLeftChar2 = $3800+(240*8)
-EndLaserRightChar2 = $3800+(241*8)
-EndLaserDownChar1 = $3800+(232*8)
-EndLaserDownChar2 = $3800+(233*8)
+EndLaserLeftChar1 = $3800+(245*8)
+EndLaserRightChar1 = $3800+(246*8)
+EndLaserLeftChar2 = $3800+(247*8)
+EndLaserRightChar2 = $3800+(248*8)
+EndLaserDownChar1 = $3800+(249*8)
+EndLaserDownChar2 = $3800+(250*8)
 
 ;Alien movement variables (The formation data is based on
 ;Richard's Alien Formation Maker program). X = first 256 bytes, Y = last 256 bytes
@@ -142,7 +143,9 @@ pulsecharright2 = $0800+102*8
 
 fillchar = 170
 
+;Invincibility timer
 
+InvulnerabilityTimer = 200
 
 
 ;Music variables

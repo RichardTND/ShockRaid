@@ -99,14 +99,7 @@ maketransfer        lda transfer,x
                     sta $dae8,x
                     inx
                     bne maketransfer
-                    ldx #$00
-copydecrunchtext    lda decrunchtext,x
-                    sta $0400,x
-                    lda #$0c
-                    sta $d800,x
-                    inx
-                    cpx #$28
-                    bne copydecrunchtext
+               
                     lda #$00
                     sta $0800
                     cli
@@ -152,9 +145,6 @@ resetntsc           lda #0
                     
 system              !byte 0                    
 ntsctimer           !byte 0
-                    !ct scr
-decrunchtext        
-                    !text "-decrunching game, please wait a moment-"
                     
                     *=$1000
                     !bin "bin\loadertune.prg",,2

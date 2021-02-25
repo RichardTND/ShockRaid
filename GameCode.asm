@@ -52,6 +52,7 @@ NewLevelStart
     sta PlayerBulletColourPointer
     sta FireButton
     sta $e1 ;Init slow anim zeropage
+    sta GameOverIsOn
     
     
     ;Initialise all sprite positions 
@@ -77,13 +78,13 @@ NewLevelStart
     
     ldx #$00
 ZeroFillGameScreen
-    lda #0
+    lda startscreen,x
     sta screen,x
-    
+    lda startscreen+$100,x
     sta screen+$100,x
-    
+    lda startscreen+$200,x
     sta screen+$200,x
-    
+    lda startscreen+$2e8,x
     sta screen+$2e8,x
     lda #$09 ;Fill multicolour WHITE
     sta colour,x
@@ -199,7 +200,7 @@ ZeroFillGameScreen
     
     ldx #$00
 .blankspriteframes
-    lda #$ff
+    lda #$d5
     sta SpriteFrameStart,x
     inx
     cpx #SpriteFrameEnd-SpriteFrameStart 
@@ -208,8 +209,10 @@ ZeroFillGameScreen
   
     ;Reset shield time (100 secs)
     
-    lda #100
+    lda #InvulnerabilityTimer
     sta ShieldTime
+    lda #$d5
+    sta BlankSprite
     
     cli
     jmp GameLoop
@@ -223,6 +226,7 @@ ZeroFillGameScreen
 GameLoop    
       jsr SyncTimer
       jsr ExpandSpritePosition
+    
       jsr AnimSprites
       jsr Scroller
       jsr LaserGate
@@ -232,7 +236,7 @@ GameLoop
       jsr SpriteToSprite
       jsr TestShield
       jsr TestEnemyBullet
-      jsr SmartBackgroundScroll
+      
       
       ;Check game pause/quit function ... CONTROL = PAUSE, <- = QUIT BACK TO FRONT END (While paused)
       
@@ -416,9 +420,8 @@ Scroller
 
 ScrollMain      
 
-      ;Main scroll controll routine (this controls the smoothness
-      ;of the scroll connected to the interrupt (irq1)
-      
+     
+     
       inc ypos
       lda ypos
       cmp #$18
@@ -639,7 +642,7 @@ GameComplete
 LaserGate
         jsr ScrollLasers
         lda LaserTriggerTime 
-        cmp #40
+        cmp #50
         beq TriggerLaserMode
         inc LaserTriggerTime
         rts
@@ -655,13 +658,21 @@ TriggerLaserMode
         
         ldx #$00
 .remove
-        lda #$00
+        lda $3800+(29*8),x
         sta LaserGateChars,x
+        sta LaserGateChars+8,x
+        sta LaserGateChars+16,x 
+        sta LaserGateChars+24,x 
+        sta LaserGateChars+32,x
+        sta LaserGateChars+40,x 
+        sta LaserGateChars+48,x
+        sta LaserGateChars+56,x
         inx
-        cpx #64
+        cpx #8
         bne .remove
         lda #1
         sta LaserTriggerOn
+
         rts
         
         ;Laser gate has been activated, copy backup characters
@@ -681,7 +692,8 @@ ActivateLaserGate
         
         ;Scroll the lasers across 
 ScrollLasers
-        
+        lda LaserTriggerOn
+        bne .skipLaserAnim
         ldx #$00
 .scrolllasers1
         lda LaserGateChars,x
@@ -733,7 +745,7 @@ ScrollLasers
         inx
         cpx #$08 
         bne .scrolllasers4
-        
+.skipLaserAnim                
 SlowAnimPulse
       lda $e1 
       cmp #1
@@ -743,7 +755,9 @@ SlowAnimPulse
 .okscroll
       lda #0
       sta $e1 
+
       ldx #$00
+
 .scrollpulse1
       lda pulsecharleft1,x
       asl 
@@ -829,7 +843,7 @@ PlayerProperties
 MovePlayerUp
         lda ObjPos+1 
         sec
-        sbc #2 ;Speed 2 * 1
+        sbc #4 ;Speed 2 * 1
         cmp #UpStopPos
         bcs .storeup
         lda #UpStopPos 
@@ -841,7 +855,7 @@ MovePlayerUp
 MovePlayerDown
         lda ObjPos+1 
         clc
-        adc #2 ;Speed 2 * 1
+        adc #4 ;Speed 2 * 1
         cmp #DownStopPos
         bcc .storedown 
         lda #DownStopPos
@@ -854,7 +868,7 @@ MovePlayerDown
 MovePlayerLeft
          lda ObjPos 
          sec
-         sbc #1 ;Sprite expanded, so speed has doubled
+         sbc #2 ;Sprite expanded, so speed has doubled
          cmp #LeftStopPos
          bcs .storeleft
          lda #LeftStopPos
@@ -867,7 +881,7 @@ MovePlayerLeft
 MovePlayerRight
          lda ObjPos
          clc
-         adc #1 ;1*1 speed
+         adc #2 ;1*1 speed
          cmp #RightStopPos
          bcc .storeright 
          lda #RightStopPos 
@@ -1601,8 +1615,8 @@ CheckCharType
          
           ;Check for laser gate chars 
           lda (playerlo),y
-          cmp #242
-          beq .playersafe1
+          ;cmp #242
+          ;beq .playersafe1
           cmp #LaserGateChar1
           beq LaserGateCollisionTest 
           cmp #LaserGateChar2
@@ -1654,7 +1668,7 @@ PlayerIsHit
           beq .deductshield
           rts
 .deductshield
-          lda #100
+          lda #InvulnerabilityTimer
           sta ShieldTime
 cheatlives
           dec Shield
@@ -1672,7 +1686,8 @@ cheatlives
 
 ;The player is dead, so clear all of the enemies and do a spectactular explosion           
           
-GameOver    
+GameOver  lda #1
+          sta GameOverIsOn
           ldx #$00
 .clearallenemiesforgameover
           lda BlankSprite
@@ -1817,6 +1832,11 @@ SetGOPosition
           sta BGColour1
           lda #$0b
           sta BGColour2
+          lda #$0a 
+          sta $D025
+          lda #$02
+          sta $d026
+          
           
 GameOverLoop        
           jsr SyncTimer
@@ -2116,7 +2136,7 @@ TestEnemyBullet
                   clc
                   adc #4
                   sta ObjPos+15
-                  cmp #$ca
+                  cmp #$be
                   bcc .notoffsetbullet
                   lda #$00
                   sta ObjPos+14
@@ -2174,6 +2194,8 @@ TestEnemyBullet
                   cmp #<BlankSprite   ;therefore it should not spawn
                   beq .cannotspawnyet
                   lda alienposx 
+                  cmp #$10
+                  bcc .cannotspawnyet
                   cmp #$a8 
                   bcs .cannotspawnyet
                   lda alienposy ;Ensure alien is on screen
@@ -2210,20 +2232,52 @@ TestEnemyBullet
                   
 ;-----------------------------------------------------------------------------------------------                  
                   
-  
+;Smart background scroll macro code
+
 SmartBackgroundScroll  
-                    lda ScrollChar
-                    sta $f6
-                    ldx #0
-.scrollcharloop     lda ScrollChar+1,x
-                    sta ScrollChar,x
-                    inx
-                    cpx #$08
-                    bne .scrollcharloop
-                    lda $f6
-                    sta ScrollChar+7 
-                    rts
-  
+           
+            lda GameOverIsOn 
+            cmp #1
+            beq .skipsmartscroll
+            lda ScrollChar
+            sta ScrollCharTemp 
+            lda ScrollChar2
+            sta ScrollCharTemp2
+            lda ScrollChar3
+            sta ScrollCharTemp3
+            lda ScrollChar4
+            sta ScrollCharTemp4
+            
+            ldx #$00
+.scrollthechars
+            lda ScrollChar+1,x
+            sta ScrollChar,x
+            lda ScrollChar2+1,x
+            sta ScrollChar2,x
+            lda ScrollChar3+1,x
+            sta ScrollChar3,x
+            lda ScrollChar4+1,x
+            sta ScrollChar4,x
+            inx
+            cpx #8
+            bne .scrollthechars
+            
+            lda ScrollCharTemp 
+            sta ScrollChar+7 
+            lda ScrollCharTemp2
+            sta ScrollChar2+7
+            lda ScrollCharTemp3
+            sta ScrollChar3+7
+            lda ScrollCharTemp4
+            sta ScrollChar4+7
+.skipsmartscroll            
+            rts
+            
+            
+            
+
+            
+            rts
 ;------------------------------------------------------------------------------------------------          
 
 ;Pal / NTSC player

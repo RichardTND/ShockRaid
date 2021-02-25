@@ -8,7 +8,7 @@ ScrollText
                 !text "plug a joystick into port 2 and press left/right "
                 !text "to select in game option ...   during play, press control to pause the game, and "
                 !byte 30
-                !text " (while paused) to abort game and return to this front end, otherwise press fire button to commence play ...   game instructions: this is a fast-paced vertical scrolling shoot 'em up (not s.e.u.c.k) "
+                !text " (while paused) to abort game and return to this front end, otherwise press fire button to commence play ...   game instructions: this is a fast-paced vertical scrolling shoot 'em up "
                 !text "for 1 player only ...   it is the year 2197 ...   an alien planet, zarjon has spiraled out of control and is "
                 !text "heading towards planet earth ...   we have sent in a few pilots and scientists to find out what has caused "
                 !text "this planet to fly so quickly towards our planet ...   it turns out that a crystal stored in the bottom of "
@@ -25,7 +25,7 @@ ScrollText
                 !text "to c64studio, due to memory range restrictions ...   graphics were drawn by hugues in charpad v2.76 free edition and spritepad v2.0 ...   "
                 !text "bitmap graphics were made by hugues in multipaint ...   "
                 !text "music was composed by myself in goat tracker v2.75 ...   finally the game was compressed nicely with exomizer v3.1.0 ...   "
-                !text "no part of this game was made with the shoot 'em up construction kit - in fact, do not call it a s.e.u.c.k game or else !!! :) ...   "
+                !text "no part of this game was made with s.e.u.c.k ...   "
                 !text "i would like to say a huge thank you to "
                 !text "hugues poisseroux for stepping in on the graphics front and also a huge thank you goes to unkle.k for publishing this game "
                 !text "on the reset mix-i-disk ...   "
