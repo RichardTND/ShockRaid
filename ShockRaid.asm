@@ -23,14 +23,7 @@ DiskVersion = 1
       *=$0800
       !bin "bin\textcharset.bin"
       
-;Insert the HUD graphics data then 
-;the attributes
-       
-      *=$0c00
-hud   !bin "bin\hud.bin"
-      !align $100,0
-hudattribs
-      !bin "bin\hudattribs.bin"
+
       
 ;Insert music data 1 (Title, In game music and Game Over jingle)
       
@@ -183,5 +176,12 @@ vidram
       
       *=$f400
       !bin "bin\music2.prg",,2
+      ;Insert the HUD graphics data then 
+;the attributes
+       
       
+hud   !bin "bin\hud.bin"
+    
+hudattribs
+      !bin "bin\hudattribs.bin"
      

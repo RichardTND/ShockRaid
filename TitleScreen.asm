@@ -17,7 +17,16 @@ TitleScreen    sei
                lda #>ScrollText 
                sta MessRead+2
                
-            
+               ldx #$00
+.clearfullscreen
+               lda #$00
+               sta $0400,x
+               sta $0500,x
+               sta $0600,x
+               sta $06e8,x 
+               inx
+               bne .clearfullscreen
+               
                lda #$35
                sta $01
                ldx #$48
@@ -92,7 +101,7 @@ TitleScreen    sei
                sta colour+$200,x
                lda colram+$2e8,x
                sta colour+$2e8,x
-               lda #$20
+               lda #$00
                sta $0400,x
                sta $0500,x
                sta $0600,x
@@ -104,6 +113,8 @@ TitleScreen    sei
                
                ldx #$00
 .blackout      lda #$00
+               sta colour+(9*40),x
+               sta $0400+(9*40),x
                sta colour+(12*40),x 
                sta colour+(13*40),x
                sta colour+(14*40),x
