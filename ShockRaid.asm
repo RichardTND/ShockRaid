@@ -53,6 +53,12 @@ DiskVersion = 1
       
 CharsBackupMemory
       !align $ff,0 
+      *=$4600
+BlankFormation
+        !Fill $ff,0 
+        !byte 0
+        !Fill $ff,0
+        !byte 0
 ;Insert the game's map (Built from Charpad)
       
       *=$4800
@@ -92,37 +98,53 @@ mapend
 ;pattern.
       
 FormationData01
-      !bin "bin\Formation01.prg",,2
+      ;!bin "bin\Formation01.prg",,2
+      !bin "bin\wave1.prg",,2
 FormationData02
-      !bin "bin\Formation02.prg",,2
+      ;!bin "bin\Formation02.prg",,2
+      !bin "bin\wave2.prg",,2
 FormationData03
-      !bin "bin\Formation03.prg",,2
+      ;!bin "bin\Formation03.prg",,2
+      !bin "bin\wave3.prg",,2
 FormationData04
-      !bin "bin\Formation04.prg",,2
+      ;!bin "bin\Formation04.prg",,2
+      !bin "bin\formation05.prg",,2
 FormationData05
-      !bin "bin\Formation05.prg",,2
+      ;!bin "bin\Formation05.prg",,2
+      !bin "bin\wave5.prg",,2
 FormationData06
-      !bin "bin\Formation06.prg",,2
+      ;!bin "bin\Formation06.prg",,2
+      !bin "bin\wave6.prg",,2
 FormationData07
-      !bin "bin\Formation07.prg",,2
+      ;!bin "bin\Formation07.prg",,2
+      !bin "bin\wave7.prg",,2
 FormationData08
-      !bin "bin\Formation08.prg",,2
+      ;!bin "bin\Formation08.prg",,2
+      !bin "bin\wave8.prg",,2
 FormationData09
-      !bin "bin\Formation09.prg",,2
+      ;!bin "bin\Formation09.prg",,2
+      !bin "bin\wave9.prg",,2
 FormationData10
-      !bin "bin\Formation10.prg",,2
+      ;!bin "bin\Formation10.prg",,2
+      !bin "bin\wave10.prg",,2
 FormationData11
-      !bin "bin\Formation11.prg",,2
+      ;!bin "bin\Formation11.prg",,2
+      !bin "bin\wave11.prg",,2
 FormationData12
-      !bin "bin\Formation12.prg",,2
+      ;!bin "bin\Formation12.prg",,2
+      !bin "bin\wave12.prg",,2
 FormationData13
-      !bin "bin\Formation13.prg",,2
+      ;!bin "bin\Formation13.prg",,2
+      !bin "bin\wave13.prg",,2
 FormationData14
-      !bin "bin\Formation14.prg",,2
+      ;!bin "bin\Formation14.prg",,2
+      !bin "bin\Formation01.prg",,2
 FormationData15
-      !bin "bin\Formation15.prg",,2
+      ;!bin "bin\Formation15.prg",,2
+      !bin "bin\Formation02.prg",,2
 FormationData16
-      !bin "bin\Formation16.prg",,2
+      ;!bin "bin\Formation16.prg",,2
+      !bin "bin\formation03.prg",,2
 
       ;Insert title screen end (game completion) text
       *=$a800

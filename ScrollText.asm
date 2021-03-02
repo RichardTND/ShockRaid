@@ -25,7 +25,6 @@ ScrollText
                 !text "to c64studio, due to memory range restrictions ...   graphics were drawn by hugues in charpad v2.76 free edition and spritepad v2.0 ...   "
                 !text "bitmap graphics were made by hugues in multipaint ...   "
                 !text "music was composed by myself in goat tracker v2.75 ...   finally the game was compressed nicely with exomizer v3.1.0 ...   "
-                !text "no part of this game was made with s.e.u.c.k ...   "
                 !text "i would like to say a huge thank you to "
                 !text "hugues poisseroux for stepping in on the graphics front and also a huge thank you goes to unkle.k for publishing this game "
                 !text "on the reset mix-i-disk ...   "

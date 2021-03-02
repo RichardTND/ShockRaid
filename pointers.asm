@@ -329,36 +329,38 @@ D023Colour !byte $0e,$05,$09,$0b,$06
 PlayerBulletColourTable !byte $09,$02,$08,$0a,$07,$01,$0d,$05,$0e,$04,$06
 PlayerBulletColourTableEnd
   
+
+
 ;Sequence tables for alien type (Using LO/HI byte values)
 AlienTypeLo !byte <AlienType1, <AlienType2, <AlienType3, <AlienType4
             !byte <AlienType5, <AlienType6, <AlienType7, <AlienType8
             !byte <AlienType9, <AlienType10, <AlienType11, <AlienType12
             !byte <AlienType13, <AlienType14, <AlienType15, <AlienType16
-            !byte <AlienType16
+            !byte <AlienType16, <AlienType16
             
 AlienTypeHi !byte >AlienType1, >AlienType2, >AlienType3, >AlienType4
             !byte >AlienType5, >AlienType6, >AlienType7, >AlienType8
             !byte >AlienType9, >AlienType10, >AlienType11, >AlienType12
             !byte >AlienType13, >AlienType14, >AlienType15, >AlienType16
-            !byte >AlienType16
+            !byte >AlienType16, >AlienType16
 ;Sequence tables for alien colour (using LO/HI byte values)
 AlienColourLo !byte <Alien1TypeColour, <AlienType2Colour, <AlienType3Colour, <AlienType4Colour
               !byte <AlienType5Colour, <AlienType6Colour, <AlienType7Colour, <AlienType8Colour
               !byte <AlienType9Colour, <AlienType10Colour, <AlienType11Colour, <AlienType12Colour
               !byte <AlienType13Colour, <AlienType14Colour, <AlienType15Colour, <AlienType16Colour
-              !byte <AlienType16Colour
+              !byte <AlienType16Colour, <AlienType16Colour
               
 AlienColourHi !byte >Alien1TypeColour, >AlienType2Colour, >AlienType3Colour, >AlienType4Colour
               !byte >AlienType5Colour, >AlienType6Colour, >AlienType7Colour, >AlienType8Colour
               !byte >AlienType9Colour, >AlienType10Colour, >AlienType11Colour, >AlienType12Colour
               !byte >AlienType13Colour, >AlienType14Colour, >AlienType15Colour, >AlienType16Colour
-              !byte >AlienType16Colour
+              !byte >AlienType16Colour, >AlienType16Colour
 AlienScoreRangeLo 
               !byte <ScoreRange1, <ScoreRange1, <ScoreRange1, <ScoreRange1 
               !byte <ScoreRange2, <ScoreRange2, <ScoreRange2, <ScoreRange2
               !byte <ScoreRange3, <ScoreRange3, <ScoreRange3, <ScoreRange3
               !byte <ScoreRange4, <ScoreRange4, <ScoreRange4, <ScoreRange4
-              !byte <ScoreRange4
+              !byte <ScoreRange4, <ScoreRange4
               
 AlienScoreRangeHi
              
@@ -366,33 +368,34 @@ AlienScoreRangeHi
               !byte >ScoreRange2, >ScoreRange2, >ScoreRange2, >ScoreRange2
               !byte >ScoreRange3, >ScoreRange3, >ScoreRange3, >ScoreRange3
               !byte >ScoreRange4, >ScoreRange4, >ScoreRange4, >ScoreRange4
-              !byte >ScoreRange4
+              !byte >ScoreRange4, >ScoreRange4
               
                             
 ;Sequence tables for alien movement data X (using LO/HI byte values)
 AlienXPosLo   !byte <F01X, <F02X, <F03X, <F04X
               !byte <F05X, <F06X, <F07X, <F08X
               !byte <F09X, <F10X, <F11X, <F12X
-              !byte <F13X, <F14X, <F15X, <F16X, <F16X
+              !byte <F13X, <F14X, <F15X, <F16X, <BlankFormation
 
 AlienXPosHi   !byte >F01X, >F02X, >F03X, >F04X
               !byte >F05X, >F06X, >F07X, >F08X
               !byte >F09X, >F10X, >F11X, >F12X
-              !byte >F13X, >F14X, >F15X, >F16X, >F16X
+              !byte >F13X, >F14X, >F15X, >F16X, >BlankFormation
               
 ;Sequence tables for alien movement data Y (using LO/HI byte values)              
 AlienYPosLo   !byte <F01Y, <F02Y, <F03Y, <F04Y
               !byte <F05Y, <F06Y, <F07Y, <F08Y
               !byte <F09Y, <F10Y, <F11Y, <F12Y
-              !byte <F13Y, <F14Y, <F15Y, <F16Y, <F16Y
+              !byte <F13Y, <F14Y, <F15Y, <F16Y, <BlankFormation
 
 AlienYPosHi   !byte >F01Y, >F02Y, >F03Y, >F04Y
               !byte >F05Y, >F06Y, >F07Y, >F08Y
               !byte >F09Y, >F10Y, >F11Y, >F12Y
-              !byte >F13Y, >F14Y, >F15Y, >F16Y, >F16Y
+              !byte >F13Y, >F14Y, >F15Y, >F16Y, >BlankFormation
               
 ;256 byte random table to select which alien to fire bullet (if present)
 
+              
 RandTable     !byte 5,1,3,2,4,1,5,1,2,3,1,4,1,5,3,1,2,5,3,1,3,4,2,1,5,1,3,1,4,2,4,1,2,4
               !byte 1,5,3,2,4,3,5,1,2,4,5,2,4,3,1,5,2,4,3,1,4,3,5,1,2,5,4,3,4,1,2,5,4,1
               !byte 2,1,4,3,4,1,2,4,3,1,3,4,1,2,4,1,4,3,5,1,2,4,5,1,5,3,2,4,5,1,3,2,2,3
@@ -401,12 +404,24 @@ RandTable     !byte 5,1,3,2,4,1,5,1,2,3,1,4,1,5,3,1,2,5,3,1,3,4,2,1,5,1,3,1,4,2,
               
  
 ;Sequence selection test data - 12 selections per level                
+
+;Alien amount per level: 
+              
+;LEVEL 1 = 15
+;LEVEL 2 = 16
+;LEVEL 3 = 14
+;LEVEL 4 = 14
+
 AlienSelectSequence              
-              !byte $01,$02,$00,$03,$02,$01,$03,$04,$00,$03,$01,$03 ;Sequence for level 1
-              !byte $02,$06,$03,$00,$05,$08,$03,$07,$05,$03,$05,$07 ;Sequence for level 2
-              !byte $09,$0a,$04,$07,$02,$03,$01,$0b,$0c,$05,$0a,$07 ;Sequence for level 3
-              !byte $0d,$0b,$0c,$09,$0a,$0e,$0a,$0b,$0e,$09,$0f,$0d ;Sequence for level 4
-              !byte $0f,$0a,$0c,$0e,$0b,$0d,$09,$0a,$0d,$0b,$0c,$0f ;(Just incase amount is too short)
+              ;Sequence 1 - 14 waves - Blank 
+              ;$10 = blank formation 
+              !byte $10,$00,$03,$01,$02,$03,$02,$01,$00,$01,$03,$01,$02,$00,$10
+              ;Sequence 2 - 16 waves
+              !byte $04,$06,$05,$07,$04,$07,$05,$06,$04,$07,$06,$04,$05,$06,$07,$10
+              ;Sequence 3 - 14 waves 
+              !byte $08,$0a,$0b,$09,$08,$0b,$0a,$09,$08,$0b,$0a,$09,$10
+              ;Sequence 4 - 14 waves 
+              !byte $0d,$0f,$0e,$0c,$0e,$0f,$0e,$0d,$0f,$0e,$0d,$0f,$10,$10 
               
 AlienSelectSequenceEnd
     
