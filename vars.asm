@@ -134,6 +134,7 @@ F16Y = FormationData16 + $100
 
 Score = $0777   ;Position of the 5-digit score panel 
 Shield = $0787  ;Position of the 1 digit shield counter
+Shield2 = $0786
 LevelIndicator = $0796 ;Position of the player level indicator
 
 pulsecharleft1 = $0800+99*8

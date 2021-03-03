@@ -21,6 +21,7 @@ NewLevelStart
     lda #$00
     sta $d01a
     sta $d019
+    sta $d011
     lda #$81
     sta $dc0d
     sta $dd0d
@@ -125,8 +126,12 @@ ZeroFillGameScreen
     cpx #$05
     bne .zeroscore
     
-    lda #$39 ;Nine shields
+    ;Fifteen shields
+    
+    lda #$35
     sta Shield
+    lda #$31
+    sta Shield2
     
     ;Setup the game sprites
     
@@ -603,10 +608,13 @@ flagcheck
         
         ;Add an extra life to the player 
         
-        lda Shield
-        cmp #$39
-        beq .nobonusshield 
         inc Shield
+        lda Shield 
+        cmp #$3a 
+        bne .nobonusshield 
+        lda #$30
+        sta Shield
+        inc Shield2
 .nobonusshield    
         jsr Score1000Bonus
         jmp SetupLevelScheme
@@ -1673,14 +1681,25 @@ PlayerIsHit
 cheatlives
           dec Shield
           lda Shield
-          cmp #$30
-          beq GameOver
+          cmp #$2f
+          beq .checkshield2
+.playshieldsound          
           lda SoundOption 
           beq .skipgameoversfx
           lda #ShieldHitSFX
           jsr SFXInit
 .skipgameoversfx          
           rts
+.checkshield2
+          lda Shield2 
+          cmp #$30
+          beq GameOver
+          dec Shield2 
+          lda #$39
+          sta Shield 
+          jmp .playshieldsound
+          
+          
           
 ;----------------------------------------------------------------------------------------------
 
@@ -1688,6 +1707,9 @@ cheatlives
           
 GameOver  lda #1
           sta GameOverIsOn
+          lda #$30
+          sta Shield
+          sta Shield2
           ldx #$00
 .clearallenemiesforgameover
           lda BlankSprite

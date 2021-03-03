@@ -142,7 +142,7 @@ pal                 jsr $1003
 resetntsc           lda #0
                     sta ntsctimer
                     rts
-                    
+                     
 system              !byte 0                    
 ntsctimer           !byte 0
                     
@@ -153,5 +153,5 @@ ntsctimer           !byte 0
                     !bin "bin\shockraidload.prg",,2
                     
                     *=$4800
-                    !bin "shockraid.prg",,2
+                    !bin "shockraid.prg",,2 
                     

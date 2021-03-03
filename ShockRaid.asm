@@ -54,7 +54,7 @@ DiskVersion = 1
 CharsBackupMemory
       !align $ff,0 
       *=$4600
-BlankFormation
+BlankFormation 
         !Fill $ff,0 
         !byte 0
         !Fill $ff,0
@@ -146,10 +146,6 @@ FormationData16
       ;!bin "bin\Formation16.prg",,2
       !bin "bin\formation03.prg",,2
 
-      ;Insert title screen end (game completion) text
-      *=$a800
-endtext      
-      !bin "bin\endtext.bin"
       *=$ac00
 endscreen2
       !bin "bin\endscreen2.bin"
@@ -160,7 +156,10 @@ endscreen2
 TILEMEMORY
       !bin "bin\gametiles.bin"
       
-      ;Insert end screen
+      ;Insert title screen end (game completion) text
+      *=$b800
+endtext      
+      !bin "bin\endtext.bin"
       
       *=$c400
 endscreenmemory

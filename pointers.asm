@@ -43,6 +43,7 @@ PlayerBulletColourPointer !byte 0
 PlayerBulletDestroyed !byte 0
 ShieldTime !byte 0
 ShieldFlashPointer !byte 0
+Lives !byte 0
 
 ;Alien bullet properties
 AlienBulletWaitTime !byte 0
@@ -146,136 +147,147 @@ PlayerShipFrame
 PlayerBulletFrame
   !byte $84,$84,$84,$84
 
-;Red electro ship
+;-------------------------------
+;Alien group - LEVEL 1  
+  
+;Cyan laser burger
 AlienType1Frame 
-  !byte $8c,$8d,$8e,$8f 
+  !byte $90,$91,$92,$93
 AlienType1FrameColour 
-  !byte $02,$02,$02,$02  
+  !byte $03,$03,$03,$03
 Alien1TypeColour
-  !byte $02
+  !byte $03
   
 ;Cyan laser burger 
 AlienType2Frame
-  !byte $90,$91,$92,$93
-AlienType2FrameColour 
-  !byte $03,$03,$03,$03  
-AlienType2Colour 
-  !byte $03
-  
-;Orange / bronze cylinder droid
-AlienType3Frame
-  !byte $94,$95,$96,$97
-AlienType3FrameColour 
-  !byte $08,$08,$08,$08  
-  
-AlienType3Colour
-  !byte $08
-  
-;Red metalic cylinder
-AlienType4Frame
   !byte $98,$99,$9a,$9b
-AlienType4FrameColour 
-  !byte $02,$02,$02,$02
-AlienType4Colour
+AlienType2FrameColour 
+  !byte $02,$02,$02,$02  
+AlienType2Colour 
   !byte $02
+  
+;Blue Telephone Box
+AlienType3Frame
+  !byte $a0,$a1,$a2,$a3
+AlienType3FrameColour 
+  !byte $06,$06,$06,$06  
+AlienType3Colour
+  !byte $06
   
 ;Grey planetoid
-AlienType5Frame
+AlienType4Frame
   !byte $9c,$9d,$9e,$9f
-AlienType5FrameColour 
+AlienType4FrameColour 
   !byte $0f,$0f,$0f,$0f
-AlienType5Colour
+AlienType4Colour
   !byte $0f
+;-------------------------  
+
+;Alien group: LEVEL 2
+
+;Gren bug
+AlienType5Frame
+  !byte $b0,$b1,$b2,$b3
+AlienType5FrameColour 
+  !byte $05,$05,$03,$03
+AlienType5Colour
+  !byte $05
   
-;Blue tardis booth
+;Yellow bug
 AlienType6Frame
-  !byte $a0,$a1,$a2,$a3
+  !byte $b4,$b5,$b6,$b7
 AlienType6FrameColour 
-  !byte $06,$06,$06,$06
+  !byte $07,$07,$07,$07
 AlienType6Colour
-  !byte $06  
+  !byte $07  
   
-;Silver pulsating ship
+;Cyan/Yellow bug
 
 AlienType7Frame 
-  !byte $a4,$a5,$a6,$a7
+  !byte $bc,$bd,$be,$bf
 AlienType7FrameColour 
-  !byte $0f,$0f,$0f,$0f
+  !byte $03,$03,$07,$07
 AlienType7Colour
-  !byte $0f
-  
-;Light blue alien space ship
-AlienType8Frame 
-  !byte $a8,$a9,$aa,$ab
-AlienType8FrameColour 
-  !byte $0e,$0e,$0e,$0e 
-AlienType8Colour  
-  !byte $0e
-  
-;Red spinning disc
-AlienType9Frame 
-  !byte $ac,$ad,$ae,$af
-AlienType9FrameColour 
-  !byte $02,$02,$02,$02
-AlienType9Colour
-  !byte $02
-  
-;Green cyan flashing bug
-AlienType10Frame 
-  !byte $b0,$b1,$b2,$b3 
-AlienType10FrameColour 
-  !byte $05,$05,$03,$03
-AlienType10Colour  
-  !byte $05 
-  
-;Yellow firefly
-AlienType11Frame 
-  !byte $b4,$b5,$b6,$b7 
-AlienType11FrameColour 
-  !byte $07,$07,$07,$07
-AlienType11Colour
   !byte $07
   
-;Grey rocker
+;Red Jellyfish bug
+AlienType8Frame 
+  !byte $c0,$c1,$c2,$c3
+AlienType8FrameColour 
+  !byte $02,$02,$02,$02 
+AlienType8Colour  
+  !byte $02
+;-------------------------
+;Group: LEVEL 3 
+
+;Grey pyramid
+AlienType9Frame 
+  !byte $a4,$a5,$a6,$a7
+AlienType9FrameColour 
+  !byte $0f,$0f,$0f,$0f
+AlienType9Colour
+  !byte $0f 
+  
+;Grey rocking ship
+AlienType10Frame 
+  !byte $b8,$b9,$ba,$bb 
+AlienType10FrameColour 
+  !byte $0f,$0f,$0f,$0f
+AlienType10Colour  
+  !byte $0f 
+  
+;Green bug ship
+AlienType11Frame 
+  !byte $c4,$c5,$c6,$c7 
+AlienType11FrameColour 
+  !byte $05,$05,$05,$05
+AlienType11Colour
+  !byte $05
+  
+;Grey extracting ball
 AlienType12Frame
-  !byte $b8,$b9,$ba,$bb
+  !byte $c8,$c9,$ca,$cb
 AlienType12FrameColour
   !byte $0f,$0f,$0f,$0f
 AlienType12Colour
   !byte $0f
   
-;Cyan bug
-AlienType13Frame 
-  !byte $bc,$bd,$be,$bf 
-AlienType13FrameColour 
-  !byte $03,$03,$07,$07
-AlienType13Colour
-  !byte $03 
+;------------------------
+
+;Alien group LEVEL 4
   
-;Red jelly fish
+;Red curved ship
+AlienType13Frame 
+  !byte $8c,$8c,$8c,$8c 
+AlienType13FrameColour 
+  !byte $02,$02,$02,$02
+AlienType13Colour
+  !byte $02 
+  
+;Red spinning disc
 AlienType14Frame 
-  !byte $c0,$c1,$c2,$c3
+  !byte $ac,$ad,$ae,$af
 AlienType14FrameColour 
   !byte $02,$02,$02,$02
 AlienType14Colour  
   !byte $02
   
-;Green bug invader
+;Blue droid ship
 AlienType15Frame
-  !byte $c4,$c5,$c6,$c7
+  !byte $a8,$a9,$aa,$ab
 AlienType15FrameColour 
-  !byte $05,$05,$03,$03
+  !byte $0e,$0e,$0e,$0e
 AlienType15Colour
-  !byte $05
+  !byte $0e
   
-;Silver exploding football
+;Orange orb
 AlienType16Frame
-  !byte $c8,$c9,$ca,$cb
+  !byte $94,$95,$96,$97
 AlienType16FrameColour 
-  !byte $0f,$0f,$0f,$0f
+  !byte $08,$08,$08,$08
 
 AlienType16Colour 
-  !byte $0f
+  !byte $08
 
 ;Alien bullet (Just a single frame)
 AlienTypeBullet

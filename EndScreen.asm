@@ -467,9 +467,9 @@ DisplayEndText
         sta $d017
         sta $d01d
         sta $d015
-        lda #$01
+        lda #$0e
         sta $d022
-        lda #$09
+        lda #$06
         sta $d023
 ;Setup the end text and attribs 
        
