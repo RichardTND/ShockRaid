@@ -120,7 +120,7 @@ FormationData07
       !bin "bin\wave7.prg",,2
 FormationData08
       ;!bin "bin\Formation08.prg",,2
-      !bin "bin\wave8.prg",,2
+      !bin "bin\wave13.prg",,2
 FormationData09
       ;!bin "bin\Formation09.prg",,2
       !bin "bin\wave9.prg",,2
@@ -135,7 +135,7 @@ FormationData12
       !bin "bin\wave12.prg",,2
 FormationData13
       ;!bin "bin\Formation13.prg",,2
-      !bin "bin\wave13.prg",,2
+      !bin "bin\wave8.prg",,2
 FormationData14
       ;!bin "bin\Formation14.prg",,2
       !bin "bin\Formation01.prg",,2
@@ -160,6 +160,11 @@ TILEMEMORY
       *=$b800
 endtext      
       !bin "bin\endtext.bin"
+      *=$bc00
+
+endattribs
+          !bin "bin\endattribs.bin"
+      
       
       *=$c400
 endscreenmemory

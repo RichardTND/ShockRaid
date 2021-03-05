@@ -1,6 +1,6 @@
 
 dname:  !text "S:"
-fname:  !text "HIGH SCORES"
+fname:  !text "SHOCK.HI"
 fnamelen = *-fname
 dnamelen = *-dname
 
@@ -8,10 +8,14 @@ dnamelen = *-dname
 SaveHiScore:
       
       jsr DisableInts 
+      lda cheatlives
+      cmp #$2c
+      beq SkipHiScoreSaver
       jsr savefile
+SkipHiScoreSaver      
       lda #$35 
       sta $01
-SkipHiScoreSaver:
+
       jmp TitleScreen
       
 LoadHiScores:

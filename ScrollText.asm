@@ -14,7 +14,7 @@ ScrollText
                 !text "this planet to fly so quickly towards our planet ...   it turns out that a crystal stored in the bottom of "
                 !text "mines appear to be the source ...   our people tried to remove the crystal in order to stop the planet "
                 !text "but they got destroyed by the alien forces ...   this is where you come in ...   your mission is to "
-                !text "enter the alien planet zarj, fly through the 4 underground lairs and do battle against the aliens ...   "
+                !text "enter the alien planet zarjon, fly through the 4 underground lairs and do battle against the aliens ...   "
                 !text "you must then locate the crystal, and destroy it in order to save earth ...   your ship is charged with "
                 !text "a limited number of shields ...   these will be lost if you collide into any aliens, their lasers, the laser gates or "
                 !text "other obstacles ...   once all shields are out, our hope will be lost and earth will be destroyed ...   "

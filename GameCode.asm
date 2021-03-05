@@ -115,6 +115,17 @@ ZeroFillGameScreen
     inx
     cpx #240-40
     bne .colourhud
+    
+    ;Clean out the mess above the score panel
+    
+    ldx #$00
+clearrow
+    lda #$00 
+    sta $0720,x
+    sta $db20,x
+    inx
+    cpx #$28 
+    bne clearrow
    
     ;Zero points
     
@@ -229,6 +240,7 @@ ZeroFillGameScreen
 ;Main game loop (controls the main body of the game code)
 
 GameLoop    
+
       jsr SyncTimer
       jsr ExpandSpritePosition
     
@@ -241,7 +253,7 @@ GameLoop
       jsr SpriteToSprite
       jsr TestShield
       jsr TestEnemyBullet
-      
+    
       
       ;Check game pause/quit function ... CONTROL = PAUSE, <- = QUIT BACK TO FRONT END (While paused)
       
@@ -2317,7 +2329,8 @@ PalNTSCPlayer
 .playerloop         lda #0
                     sta NTSCTimer
                     rts
-                           
+  
+
 ;-------------------------------------------------------------------------------------
 
 ;Construct main IRQ raster interrupts.

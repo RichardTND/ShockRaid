@@ -484,19 +484,20 @@ DisplayEndText
         lda endtext+$2e8,x
         sta screen+$2e8,x
         ldy screen,x 
-        lda hudattribs,y 
+        lda endattribs,y 
         sta colour,x
         ldy screen+$100,x
-        lda hudattribs,y
+        lda endattribs,y
         sta colour+$100,x
         ldy screen+$200,x 
-        lda hudattribs,y 
+        lda endattribs,y 
         sta colour+$200,x 
         ldy screen+$2e8,x
-        lda hudattribs,y 
+        lda endattribs,y 
         sta colour+$2e8,x 
         inx
         bne .setendtext 
+       
         ldx #$00
 .restorelaserbeams
         lda LaserGateCharsBackup,x
@@ -507,6 +508,8 @@ DisplayEndText
         
         lda #$12
         sta $d018
+        lda #$18
+        sta $d016
         lda #$1b
         sta $d011
         

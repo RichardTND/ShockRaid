@@ -2,6 +2,7 @@
 ;In game pointers
 ;****************
 
+
 ;Pal NTSC system 
 system !byte 0
 
@@ -43,7 +44,7 @@ PlayerBulletColourPointer !byte 0
 PlayerBulletDestroyed !byte 0
 ShieldTime !byte 0
 ShieldFlashPointer !byte 0
-Lives !byte 0
+
 
 ;Alien bullet properties
 AlienBulletWaitTime !byte 0
@@ -132,7 +133,6 @@ CrystalBottomRight !byte 0
 GamePointersEnd !byte 0
 SpriteFrameEnd
 !byte $d5
-
 
 ;Self mod Sprite object position table (filled with blank)
 ObjPos !byte $00,$00,$00,$00,$00,$00,$00,$00
