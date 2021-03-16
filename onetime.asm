@@ -11,6 +11,7 @@
 ;for example backup the laser beam character set, etc.
       
     ;Backup the laser character set
+    
       sei
       lda #$35
       sta $01
@@ -27,5 +28,6 @@ backuplaser
       sta $d020
       sta $d021
     
+      ;Now load hi score table from disk 
       
       jmp LoadHiScores

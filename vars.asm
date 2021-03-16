@@ -53,7 +53,7 @@ row20 = screen+20*40
 
 UpStopPos = $5a
 DownStopPos = $ba
-LeftStopPos = $0e
+LeftStopPos = $0c
 RightStopPos = $a0
 
 KillerCharsRangeStartGroup1 = 44
@@ -79,9 +79,9 @@ LevelExitChar = 27 ;The char ID for the top of the flag pole
 playerlo = $70 ;Zero pages set for the player 
 playerhi = $71
 
-ScrollChar = $3800+(29*8) ;The the scrolling void
-ScrollChar2 = $3800+(30*8)
-ScrollChar3 = $3800+(35*8)
+;ScrollChar = $3800+(29*8) ;The the scrolling void
+;ScrollChar2 = $3800+(30*8)
+;ScrollChar3 = $3800+(35*8)
 ScrollChar4 = $3800+(193*8)
 
 EndLaserLeftChar1 = $3800+(245*8)
@@ -183,6 +183,7 @@ scorelen = 5
 listlen = 5
 namelen = 9
 storbyt = $07
+NameStop = <Name+9
 ;Hi Score detection
 
 SFXInit = $f000

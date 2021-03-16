@@ -2,6 +2,8 @@
 ;We use stack control in order to stabilize the interrupts
 
 
+          ;Game scrolling background IRQ
+
 irq1
           sta stacka1+1 
           stx stackx1+1 
@@ -21,6 +23,7 @@ irq1
           lda #$1e    
           sta $d018     
         
+       
           lda BGColour2
           sta $d023
           lda BGColour1
@@ -28,13 +31,15 @@ irq1
           lda #$ff
           sta $d015
           sta $d01c
-           ;Main scroll controll routine (this controls the smoothness
-      ;of the scroll connected to the interrupt (irq1)
-      jsr SmartBackgroundScroll
+         
+          ;Main scroll controll routine (this controls the smoothness
+          ;of the scroll connected to the interrupt (irq1)
+          
+          jsr SmartBackgroundScroll
        
           ldx #<irq2    
           ldy #>irq2    
-          lda #$d0 
+          lda #$d1 
           stx $fffe     
           sty $ffff     
           sta $d012     
@@ -47,14 +52,15 @@ stacky1
           ldy #$00      
           rti
 
+          ;Status Panel IRQ. Before that however a $D011 register 
+          ;is triggered to hide the last row before the score panel
+          ;in order to stabilise the score panel.
+          
 irq2      sta stacka2+1
          
-          lda #$0e
-          sta $d022     
-          lda #$06
-          sta $d023     
-          lda #$ff      
-          sta $d01b
+        
+          lda #$00     
+          sta $d015
         
           lda $d011     
           cmp #$15      
@@ -71,9 +77,16 @@ irq2      sta stacka2+1
           nop
           nop
           nop
+          
+          ;The main score panel IRQ. The panel is set to blue
+          ;and remains that call through all causes.
 flip
           stx stackx2+1 
-
+          
+            lda #$0e
+          sta $d022     
+          lda #$06
+          sta $d023     
           lda #$77      
           sta $d011     
           sty stacky2+1 
@@ -112,6 +125,8 @@ stacky2
 
 
 nmi         rti
+
+          ;PAL & NTSC timed music player
 
 SoundPlayer
           lda #1

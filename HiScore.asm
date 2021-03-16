@@ -6,9 +6,13 @@
 ;# (C)2021 The New Dimension #
 ;#     For Reset Magazine    #
 ;#############################
-
+!align $100,0
+Name            !text "         "                
+NameEnd
 HiScoreRoutine
-          
+                
+               ;The game is over. Now clear all IRQs and check for 
+               ;a new hi score.
      
                lda #$35
                sta $01
@@ -28,6 +32,10 @@ HiScoreRoutine
           
           lda #0
           sta FireButton
+          
+          ;Copy player score to final score, before clearing the 
+          ;screen.
+          
           ldx #$00
 .copyfin  lda Score,x
           sta FinalScore,x
@@ -35,7 +43,7 @@ HiScoreRoutine
           cpx #5
           bne .copyfin
         
-         
+          ;Restore back to VIC Bank #$03 and init name pointers
           
           lda #$12
           sta $d018
@@ -53,8 +61,9 @@ HiScoreRoutine
           sta NameFinished
           sta JoyDelay
           
-          ;Check if the player cheated if so, hi score
-          ;is not allowed.
+          ;Check if the player has cheated. If so, the hi score
+          ;is not allowed to be recorded. Even if the game has been 
+          ;completed.
           
           lda cheatlives+1
           cmp #$2c
@@ -62,15 +71,20 @@ HiScoreRoutine
           jmp hiscoreallowed
 nohiscoreallowed 
           jmp nohiscor
-hiscoreallowed          
+hiscoreallowed       
+   
           ;Check if the player's score has reached 
           ;a position in the high score table
           
           ldx #$00
-nextone   lda hslo,x
+nextone   lda hslo,x  
           sta $c1
           lda hshi,x
           sta $c2 
+          
+          ;The hi score table position read is grabbed so check if 
+          ;the player's score is higher rank or equal rank compared
+          ;to the hi scores 
           
           ldy #$00
 scoreget  lda FinalScore,y 
@@ -89,6 +103,8 @@ posdown   inx
 posfound  stx storbyt
           cpx #listlen-1
           beq lastscor
+          
+          ;Move all hi scores and name ranks down 
           
           ldx #listlen-1
 copynext  lda hslo,x
@@ -132,7 +148,13 @@ lastscor  ldx storbyt
           sta $d1 
           lda nmhi,x
           sta $d2 
+          
+          ;Call routine to allow player to sign name
+          
           jmp NameEntry
+          
+          ;Then place the name to the new hi score
+          
 PlaceNewScore
           ldy #scorelen-1
 putscore  lda FinalScore,y
@@ -144,7 +166,14 @@ putname   lda Name,y
           sta ($d1),y
           dey
           bpl putname
+          lda cheatlives ;Cheat mode: If LASERBEAM is added as name skip saving
+          cmp #$2c       ;the new hi score
+          beq nohiscor
+          
+          ;Save / Update hi score file (if running from disk)
+          
           jmp SaveHiScore
+          
 nohiscor jmp Title          
           
           
@@ -327,9 +356,11 @@ z_char    lda #26
           ;Check fire button on joystick 
           
 hi_fire   lda $dc00
-          !for f = 1 to 5
-            lsr
-          !end
+          lsr
+          lsr
+          lsr
+          lsr
+          lsr
           bit FireButton
           ror FireButton
           bmi hi_nofire
@@ -397,9 +428,9 @@ cheatcheck
           bne cheatcheck
           
 .activatecheat          
-          
+       
           lda #$2c
-          sta cheatlives+1
+          sta cheatlives
 skipcheat          
           rts
 
@@ -456,8 +487,7 @@ FinalScore !byte $30,$30,$30,$30,$30
 JoyDelay !byte 0
 NameFinished !byte 0
 Hi_Char  !byte 0
-Name            !text "         "                
-NameEnd
+
 CheatName       !text "laserbeam"
 
 hslo !byte <HiScore1,<HiScore2,<HiScore3,<HiScore4,<HiScore5 

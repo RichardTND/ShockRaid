@@ -194,7 +194,7 @@ vidram
       !bin "bin\logobitmap.prg",,2
       
       ;Insert in game sound effects player data
-      
+       
       *=$f000
       !bin "bin\shockraidsfx.prg",,2
       

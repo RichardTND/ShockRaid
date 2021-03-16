@@ -12,10 +12,12 @@ Title
 TitleScreen    sei
                lda #$34
                sta $01
-               lda #<ScrollText 
+               lda #<ScrollText ;Initialise scroll text
                sta MessRead+1
                lda #>ScrollText 
                sta MessRead+2
+               
+               ;Clear the entire screen
                
                ldx #$00
 .clearfullscreen
@@ -26,6 +28,8 @@ TitleScreen    sei
                sta $06e8,x 
                inx
                bne .clearfullscreen
+               
+               ;Kill all IRQs and set to $0001,$35 mode.
                
                lda #$35
                sta $01
@@ -58,6 +62,9 @@ TitleScreen    sei
                sta $07f8
                lda SFXSprite
                sta $07f9
+               
+               ;Setup blue star sprites for title screen
+               
                ldx #$00
 .makestars               
                lda StarSprite 
@@ -76,6 +83,7 @@ TitleScreen    sei
                sta $d025
                lda #$0b
                sta $d026
+               
                lda #$0c
                sta ObjPos
                lda #$a0
@@ -92,6 +100,9 @@ TitleScreen    sei
                sta $e1
                sta FireButton
               
+               ;Copy the logo video and colour data then place into 
+               ;the logo's video and colour RAM at BANK $01
+               
                ldx #$00
 .paintlogo     lda colram,x
                sta colour,x
@@ -130,7 +141,13 @@ TitleScreen    sei
                inx
                cpx #$28
                bne .blackout
+               
+               ;Display hi scores by default 
+               
                jsr DisplayHiScores
+               
+               ;Setup IRQ interrupts for the title screen
+               
                ldx #<tirq1
                ldy #>tirq1
                stx $fffe
@@ -223,9 +240,16 @@ tirq3          sta tstacka3+1
                asl $d019 
                lda #$f0
                sta $d012
-               !for i= 1to 9
-                 nop
-               !end
+               nop
+               nop
+               nop
+               nop
+               nop
+               nop
+               nop
+               nop
+               nop
+               nop
                
                lda #$03
                sta $dd00
@@ -246,34 +270,40 @@ tstackx3       ldx #$00
 tstacky3       ldy #$00
                rti
                
+               ;Main loop for our title screen
                
-TitleLoop       jsr SyncTimer
-                jsr ExpandSpritePosition
-                jsr StarField
-                jsr XScroller
-                jsr PageFlipper
-                jsr FlashRoutine
-                jsr LaserGate
-                jsr CheckSoundOption
-                jsr WashColourText
+TitleLoop       jsr SyncTimer             ;Synchronize timer with IRQ
+                jsr ExpandSpritePosition  ;Expand the sprite position to use full screen
+                jsr StarField             ;Move the stars
+                jsr XScroller             ;Scroll text routine
+                jsr PageFlipper           ;Credits / Hall of fame swap routine
+                jsr FlashRoutine          ;Colour flashing and washing
+                jsr LaserGate             ;Charset animation for the scrolling lasers
+                jsr CheckSoundOption      ;Sound option detection
+                jsr WashColourText        ;Main colour washing text
                 
+                ;Read joystick to select game sound options
                 
-.titleleft      lda #4
+.titleleft      lda #4            ;Left selects in game music
                 bit $dc00 
                 bne .titleright
                 lda #0
                 sta SoundOption
                 jmp FireButtonWait
-.titleright     lda #8
+                
+.titleright     lda #8            ;Right selects sound effects
                 bit $dc00
                 bne FireButtonWait
                 lda #1
                 sta SoundOption
 FireButtonWait                
-                lda $dc00
-                !for f = 1 to 5
-                  lsr
-                !end 
+                                  ;Check fire button and that it has been
+                lda $dc00         ;released. Then start game.
+                lsr
+                lsr
+                lsr
+                lsr
+                lsr
                 bit FireButton
                 ror FireButton
                 bmi TitleLoop
@@ -373,6 +403,8 @@ DisplayCredits
                 cpx #40
                 bne .putmessage
                 rts
+                
+                ;Clean up a few bits
                 
 ClearNecessaryRows
                 ldx #$00
@@ -535,7 +567,9 @@ WashColourTextRight
                 sta colour+(19*40),x
                 dex
                 bpl .washright
-                rts                
+                rts       
+       
+                ;Title screen pointers
                 
 MusicSprite !byte $d6
 SFXSprite !byte $d7
@@ -613,7 +647,7 @@ HallOfFameText  !text "            the hall of fame            "
                 
                 !text "           1. "
 HiScoreTableStart                
-Name1           !text "richard b "
+Name1           !text "richard   "
 HiScore1        !text "09000           "
                 !text "           2. "
 Name2           !text "hugues    "

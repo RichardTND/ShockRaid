@@ -287,6 +287,7 @@ checktodelete
 EndLoop4
            jsr SyncTimer
            jsr ExpandSpritePosition
+            jsr AnimSprites
            jsr AnimEndBG
           
            jsr DestroyEverything 

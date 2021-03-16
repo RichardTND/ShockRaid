@@ -18,7 +18,7 @@ ScrollText
                 !text "you must then locate the crystal, and destroy it in order to save earth ...   your ship is charged with "
                 !text "a limited number of shields ...   these will be lost if you collide into any aliens, their lasers, the laser gates or "
                 !text "other obstacles ...   once all shields are out, our hope will be lost and earth will be destroyed ...   "
-                !text "you will be rewarded a bonus shield for every level completed "
+                !text "you will be rewarded a bonus shield for every level completed and "
                 !text "1,000 points will also be awarded as a bonus for you ...   "
                 !text "can you find the power crystal and destroy it or will life on earth be no more? ...   the fate of planet earth is "
                 !text "in your hands ...    good luck pilot ...   this game was first programmed in turbo assembler v5.2 on thec64 full size, but the source was then moved "

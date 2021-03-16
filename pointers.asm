@@ -9,6 +9,9 @@ system !byte 0
 ;NTSC Timer for music playing 
 NTSCTimer !byte 0
 
+;Conditional pointer
+GameIsPaused !byte 0
+
 ;Player control (Fire button) prevent autofire
 
 FireButton !byte 0
@@ -354,7 +357,7 @@ AlienTypeHi !byte >AlienType1, >AlienType2, >AlienType3, >AlienType4
             !byte >AlienType5, >AlienType6, >AlienType7, >AlienType8
             !byte >AlienType9, >AlienType10, >AlienType11, >AlienType12
             !byte >AlienType13, >AlienType14, >AlienType15, >AlienType16
-            !byte >AlienType16, >AlienType16
+            !byte >AlienType16, >AlienType16 
 ;Sequence tables for alien colour (using LO/HI byte values)
 AlienColourLo !byte <Alien1TypeColour, <AlienType2Colour, <AlienType3Colour, <AlienType4Colour
               !byte <AlienType5Colour, <AlienType6Colour, <AlienType7Colour, <AlienType8Colour
@@ -433,7 +436,7 @@ AlienSelectSequence
               ;Sequence 3 - 14 waves 
               !byte $08,$0a,$0b,$09,$08,$0b,$0a,$09,$08,$0b,$0a,$09,$10
               ;Sequence 4 - 14 waves 
-              !byte $0d,$0f,$0e,$0c,$0e,$0f,$0e,$0d,$0f,$0e,$0d,$0f,$10,$10 
+              !byte $0d,$0f,$0e,$0c,$0e,$0f,$0e,$0d,$0f,$0e,$0d,$0f,$10,$10,$10
               
 AlienSelectSequenceEnd
     
@@ -447,6 +450,17 @@ screenlo      !byte $00,$28,$50,$78,$a0,$c8,$f0,$18,$40,$68,$90,$b8
 screenhi      !byte $04,$04,$04,$04,$04,$04,$04,$05,$05,$05,$05,$05
               !byte $05,$06,$06,$06,$06,$06,$06,$06,$07,$07,$07,$07
               !byte $07
+              
+ExplodeFlashDelay !byte 0
+ExplodeFlashPointer !byte 0
+ExplodeFlashTable !byte $09,$02,$08,$0f,$07,$01,$01,$01,$07,$0f,$0a,$08,$02,$00
+ExplodeFlashTableEnd !byte $00
+
+ExplodeFlashTable2 !byte $02,$08,$0f,$07,$01,$01,$01,$07,$0f,$0a,$08,$02,$0c,$0b
+ExplodeFlash2TableEnd !byte $0b
+
+ExplodeFlashTable3 !byte $08,$0f,$07,$01,$01,$01,$01,$01,$07,$0f,$08,$0c,$0c,$0c 
+ExplodeFlashTable3End !byte $0c
               
 !align $100,0
 startscreen   !bin "bin\startscreen.bin"

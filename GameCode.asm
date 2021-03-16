@@ -54,7 +54,9 @@ NewLevelStart
     sta FireButton
     sta $e1 ;Init slow anim zeropage
     sta GameOverIsOn
-    
+    lda #0
+    sta ExplodeFlashDelay
+    sta ExplodeFlashPointer
     
     ;Initialise all sprite positions 
     
@@ -196,6 +198,7 @@ clearrow
     
     
     ;Zero all game pointers. So that alien movement, etc is reset 
+    
 .Continue    
     ldx #$00
 .initialisepointers
@@ -233,26 +236,23 @@ clearrow
     cli
     jmp GameLoop
     
-
-    
 ;------------------------------------------------------------------------------------------------    
     
 ;Main game loop (controls the main body of the game code)
 
 GameLoop    
 
-      jsr SyncTimer
-      jsr ExpandSpritePosition
-    
-      jsr AnimSprites
-      jsr Scroller
-      jsr LaserGate
-      jsr PlayerProperties
-      jsr AlienProperties
-      jsr SpriteToBackground
-      jsr SpriteToSprite
-      jsr TestShield
-      jsr TestEnemyBullet
+      jsr SyncTimer             ;Synchronise game timer with IRQ
+      jsr ExpandSpritePosition  ;Allow sprites to use whole screen area
+      jsr AnimSprites           ;Read sprite animation tables
+      jsr Scroller              ;Game map scrolling
+      jsr LaserGate             ;Animate laser gate activity
+      jsr PlayerProperties      ;Player behaviour
+      jsr AlienProperties       ;Alien behaviour
+      jsr SpriteToBackground    ;Sprite to background collision check
+      jsr SpriteToSprite        ;Sprite to sprite collision check
+      jsr TestShield            ;Shield check routine 
+      jsr TestEnemyBullet       ;Bullet prpoerties
     
       
       ;Check game pause/quit function ... CONTROL = PAUSE, <- = QUIT BACK TO FRONT END (While paused)
@@ -264,6 +264,9 @@ GameLoop
       ;Press fire to unpause game
       lda #0
       sta FireButton
+      lda #1
+      sta GameIsPaused
+      
 .pauseloop      
       lda $dc00
       lsr
@@ -285,7 +288,8 @@ GameLoop
       jmp Title
       
 .resume      
-      
+      lda #0
+      sta GameIsPaused
       
 NotPaused      
       jmp GameLoop
@@ -303,8 +307,6 @@ SyncTimer
       
 .skip rts
       
-
-
 ;------------------------------------------------------------------------------------------------
 
 ;Double the size of the X sprite position so that the sprites can
@@ -378,9 +380,11 @@ AnimSprites
       sta AlienType16
       lda CrystalTypeFrame,x 
       sta Crystal
+      
       ;Now do the same for the colour table as some 
       ;sprites use more than one sprite colour 
       ;to give them a cool effect 
+      
       lda AlienType1FrameColour,x
       sta Alien1TypeColour
       lda AlienType2FrameColour,x
@@ -424,11 +428,6 @@ AnimSprites
       stx SpriteAnimPointer
       rts
       
-      
-      
-      
-      
-
 ;------------------------------------------------------------------------------------------------      
       
 ;Scroll main game background data
@@ -437,7 +436,7 @@ Scroller
 
 ScrollMain      
 
-     
+      ;Soft scroll $D011 counter control
      
       inc ypos
       lda ypos
@@ -632,9 +631,10 @@ flagcheck
         jmp SetupLevelScheme
         
         
-;Main level counter checker 
+;Main level counter checker - give colour scheme for background
 
 SetupLevelScheme
+        
         ldx LevelPointer
         lda D022Colour,x
         sta BGColour1
@@ -660,6 +660,10 @@ GameComplete
 ;Control the laser gates settings (on/off)
 
 LaserGate
+        lda GameIsPaused 
+        beq .gatetest
+        rts
+.gatetest        
         jsr ScrollLasers
         lda LaserTriggerTime 
         cmp #50
@@ -697,6 +701,7 @@ TriggerLaserMode
         
         ;Laser gate has been activated, copy backup characters
         ;and place on to the laser gate
+        
 ActivateLaserGate
         
         ldx #$00
@@ -872,6 +877,7 @@ MovePlayerUp
         rts 
         
         ;Move player down until it has reached its stop zone
+        
 MovePlayerDown
         lda ObjPos+1 
         clc
@@ -914,10 +920,7 @@ MovePlayerRight
          ;unless of course, bullet is dead. 
          
 FireBullet
-          ;lda PlayerBulletDestroyed 
-          ;cmp #1
-          ;beq .destroyplayerbullet
-         
+          
           lda ObjPos+2  ;If at zero position (by default)
           cmp #$00
           bne .skipshot
@@ -925,6 +928,7 @@ FireBullet
 .skipshot rts
           
           ;Position bullet where player is 
+          
 .doplayerfirebullet
           lda #$84
           sta $07f9 
@@ -941,7 +945,6 @@ FireBullet
 .skipplayershootsfx          
           rts 
           
-          
 ;---------------------------------------------------------          
 
 ;Player Bullet Control 
@@ -949,9 +952,11 @@ FireBullet
 PlayerBulletProperties
           
           ;Set bullet type 
+          
           jsr FlashPlayerBullet
           
 BColSM    ;Player bullet self-mod
+
           lda #$0d
           sta $d028
           
@@ -981,7 +986,9 @@ FlashPlayerBullet
           beq .loopflash
           inc PlayerBulletColourPointer
           rts
+          
           ;Restart bullet colour colour cycle
+          
 .loopflash          
           ldx #0
           stx PlayerBulletColourPointer
@@ -1683,13 +1690,27 @@ LaserGateCollisionTest
 ;to flash. Otherwise destroy the player.
 
 PlayerIsHit
+
+          
           lda ShieldTime
           cmp #0
           beq .deductshield
           rts
 .deductshield
+
+          ;First check if the total number of shields = 0 
+          lda Shield
+          cmp #$31 ;Lives indicator = 1
+          beq .checkshielddigit2
+          jmp .shieldnot30
+.checkshielddigit2
+          lda Shield2 
+          cmp #$30 
+          beq GameOver
+.shieldnot30
           lda #InvulnerabilityTimer
           sta ShieldTime
+                    
 cheatlives
           dec Shield
           lda Shield
@@ -1715,7 +1736,7 @@ cheatlives
           
 ;----------------------------------------------------------------------------------------------
 
-;The player is dead, so clear all of the enemies and do a spectactular explosion           
+;The player is dead, so clear all of the enemies and do a twin explosion           
           
 GameOver  lda #1
           sta GameOverIsOn
@@ -1759,6 +1780,7 @@ MassExplosionLoop
           jsr ExplodeAllSprites 
           jsr MoveExploder
           jsr LaserGate
+          jsr ExplodeBackground
           jmp MassExplosionLoop
           
           ;Explode all sprites animation 
@@ -2273,44 +2295,27 @@ SmartBackgroundScroll
             lda GameOverIsOn 
             cmp #1
             beq .skipsmartscroll
-            lda ScrollChar
-            sta ScrollCharTemp 
-            lda ScrollChar2
-            sta ScrollCharTemp2
-            lda ScrollChar3
-            sta ScrollCharTemp3
+            
+            lda GameIsPaused
+            cmp #1
+            beq .skipsmartscroll
+        
             lda ScrollChar4
             sta ScrollCharTemp4
             
             ldx #$00
 .scrollthechars
-            lda ScrollChar+1,x
-            sta ScrollChar,x
-            lda ScrollChar2+1,x
-            sta ScrollChar2,x
-            lda ScrollChar3+1,x
-            sta ScrollChar3,x
+          
             lda ScrollChar4+1,x
             sta ScrollChar4,x
             inx
             cpx #8
             bne .scrollthechars
             
-            lda ScrollCharTemp 
-            sta ScrollChar+7 
-            lda ScrollCharTemp2
-            sta ScrollChar2+7
-            lda ScrollCharTemp3
-            sta ScrollChar3+7
+           
             lda ScrollCharTemp4
             sta ScrollChar4+7
 .skipsmartscroll            
-            rts
-            
-            
-            
-
-            
             rts
 ;------------------------------------------------------------------------------------------------          
 
@@ -2330,7 +2335,36 @@ PalNTSCPlayer
                     sta NTSCTimer
                     rts
   
+;Explode the game background - This trick is 
+;triggered on the Game Over screen only. Otherwise 
+;enabled.
 
+ExplodeBackground
+                     lda ExplodeFlashDelay
+                     cmp #1
+                     beq .doflashexploder
+                     inc ExplodeFlashDelay 
+                     rts 
+.doflashexploder     lda #0
+                     sta ExplodeFlashDelay
+                     ldx ExplodeFlashPointer 
+                     lda ExplodeFlashTable,x
+                     sta $d021 
+                     lda ExplodeFlashTable3,x
+                     sta BGColour1
+                     lda ExplodeFlashTable2,x
+                     sta BGColour2
+                     inx
+                     cpx #ExplodeFlashTableEnd-ExplodeFlashTable
+                     beq .greyoutscreen
+                     inc ExplodeFlashPointer
+                     rts
+.greyoutscreen       ldx #ExplodeFlashTableEnd-ExplodeFlashTable-1
+                     stx ExplodeFlashPointer
+                     rts
+                     
+
+                     
 ;-------------------------------------------------------------------------------------
 
 ;Construct main IRQ raster interrupts.
