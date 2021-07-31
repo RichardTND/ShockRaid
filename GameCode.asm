@@ -22,6 +22,7 @@ NewLevelStart
     sta $d01a
     sta $d019
     sta $d011
+    
     lda #$81
     sta $dc0d
     sta $dd0d
@@ -57,6 +58,7 @@ NewLevelStart
     lda #0
     sta ExplodeFlashDelay
     sta ExplodeFlashPointer
+    sta GameIsPaused
     
     ;Initialise all sprite positions 
     
