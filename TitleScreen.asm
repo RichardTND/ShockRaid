@@ -47,7 +47,7 @@ TitleScreen    sei
                sta $d01b
                sta TitleFlashColourPointer
                sta TitleFlashColourDelay
-               
+               sta GameIsPaused
                sta XPos
                lda #$81
                sta $dc0d
